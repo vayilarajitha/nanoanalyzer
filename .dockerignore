@@ -1,0 +1,12 @@
+# Exclude sensitive environment configurations and local logs from Docker build
+.env
+.env.*
+.git
+.gitignore
+.antigravityignore
+*.log
+scratch/
+temp_verify.php
+.gemini/
+node_modules/
+vendor/
