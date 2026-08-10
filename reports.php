@@ -5,12 +5,15 @@ require_login();
 $page_title = 'Reports Manager | NanoAnalyzer';
 $user_id = get_current_user_id();
 
-try {
-    $stmt = $pdo->prepare("SELECT * FROM predictions WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$user_id]);
-    $reports = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $reports = [];
+$reports = [];
+if ($pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM predictions WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$user_id]);
+        $reports = $stmt->fetchAll() ?: [];
+    } catch (Throwable $e) {
+        $reports = [];
+    }
 }
 
 include __DIR__ . '/includes/header.php';

@@ -7,7 +7,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $user_id = get_current_user_id();
 
 try {
-    if (!$pdo) {
+    if (!($pdo instanceof PDO)) {
         throw new Exception("Supabase PostgreSQL DB connection unavailable.");
     }
 
@@ -61,6 +61,6 @@ try {
 
     echo json_encode(['status' => 'error', 'message' => 'Invalid action.']);
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
 }

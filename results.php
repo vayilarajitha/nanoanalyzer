@@ -5,18 +5,21 @@ require_login();
 $id = trim($_GET['id'] ?? '');
 $user_id = get_current_user_id();
 
-try {
-    if (!empty($id)) {
-        $stmt = $pdo->prepare("SELECT p.*, COALESCE(u.name, u.full_name) as full_name, u.institution FROM analysis_results p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1");
-        $stmt->execute([$id]);
-        $row = $stmt->fetch();
-    } else {
-        $stmt = $pdo->prepare("SELECT p.*, COALESCE(u.name, u.full_name) as full_name, u.institution FROM analysis_results p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT 1");
-        $stmt->execute();
-        $row = $stmt->fetch();
+$row = null;
+if ($pdo instanceof PDO) {
+    try {
+        if (!empty($id)) {
+            $stmt = $pdo->prepare("SELECT p.*, COALESCE(u.name, u.full_name) as full_name, u.institution FROM analysis_results p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? LIMIT 1");
+            $stmt->execute([$id]);
+            $row = $stmt->fetch() ?: null;
+        } else {
+            $stmt = $pdo->prepare("SELECT p.*, COALESCE(u.name, u.full_name) as full_name, u.institution FROM analysis_results p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT 1");
+            $stmt->execute();
+            $row = $stmt->fetch() ?: null;
+        }
+    } catch (Throwable $e) {
+        $row = null;
     }
-} catch (Exception $e) {
-    $row = null;
 }
 
 if (!$row) {

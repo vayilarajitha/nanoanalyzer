@@ -5,17 +5,21 @@ require_login();
 $page_title = 'Dataset Manager | NanoAnalyzer';
 $user_id = get_current_user_id();
 
-try {
-    if (!$pdo) throw new Exception("Supabase DB not connected.");
-    $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
-    $stmt->execute([$user_id]);
-    $datasets = $stmt->fetchAll();
-    if (empty($datasets)) {
-        $stmt_all = $pdo->query("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id ORDER BY d.created_at DESC");
-        $datasets = $stmt_all->fetchAll();
+$datasets = [];
+if ($pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
+        $stmt->execute([$user_id]);
+        $datasets = $stmt->fetchAll() ?: [];
+        if (empty($datasets)) {
+            $stmt_all = $pdo->query("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id ORDER BY d.created_at DESC");
+            if ($stmt_all) {
+                $datasets = $stmt_all->fetchAll() ?: [];
+            }
+        }
+    } catch (Throwable $e) {
+        $datasets = [];
     }
-} catch (Exception $e) {
-    $datasets = [];
 }
 
 // CSV Export Handler

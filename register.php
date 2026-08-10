@@ -12,8 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($full_name) && !empty($email) && !empty($password)) {
         try {
-            if (!$pdo) {
-                throw new Exception("Unable to establish connection to Supabase PostgreSQL database.");
+            if (!($pdo instanceof PDO)) {
+                throw new Exception("Unable to establish connection to Supabase PostgreSQL database. Please check configuration.");
             }
             // Check existing email
             $check = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: dashboard.php');
                 exit;
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $error = 'Registration error: ' . $e->getMessage();
         }
     } else {

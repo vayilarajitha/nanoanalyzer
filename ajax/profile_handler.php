@@ -14,7 +14,7 @@ $institution = trim($_POST['institution'] ?? '');
 $bio = trim($_POST['bio'] ?? '');
 
 try {
-    if (!$pdo) {
+    if (!($pdo instanceof PDO)) {
         throw new Exception("Supabase PostgreSQL DB connection unavailable.");
     }
 
@@ -24,6 +24,6 @@ try {
     $_SESSION['full_name'] = $full_name;
 
     echo json_encode(['status' => 'success', 'message' => 'Profile details saved to Supabase.']);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

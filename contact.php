@@ -11,10 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($name) && !empty($message)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO system_logs (user_id, action, details) VALUES (?, 'CONTACT_FORM', ?)");
-            $stmt->execute([get_current_user_id(), "Message from $name ($email): $message"]);
+            if ($pdo instanceof PDO) {
+                $stmt = $pdo->prepare("INSERT INTO system_logs (user_id, action, details) VALUES (?, 'CONTACT_FORM', ?)");
+                $stmt->execute([get_current_user_id(), "Message from $name ($email): $message"]);
+            }
             $sent = true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $sent = true;
         }
     }

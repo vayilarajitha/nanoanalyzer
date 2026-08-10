@@ -42,11 +42,13 @@ if (strpos($msg_lower, 'size') !== false || strpos($msg_lower, 'optimal') !== fa
 }
 
 // SAVE TO SUPABASE PostgreSQL chatbot_logs table via PDO
-try {
-    $stmt = $pdo->prepare("INSERT INTO chatbot_logs (user_id, session_id, user_message, bot_response, intent) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$user_id, $session_id, $user_msg, $bot_reply, $intent]);
-} catch (PDOException $e) {
-    // Log silently if table error
+if ($pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("INSERT INTO chatbot_logs (user_id, session_id, user_message, bot_response, intent) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$user_id, $session_id, $user_msg, $bot_reply, $intent]);
+    } catch (Throwable $e) {
+        // Log silently if table error
+    }
 }
 
 echo json_encode([

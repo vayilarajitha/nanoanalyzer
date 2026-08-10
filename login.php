@@ -9,8 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($email) && !empty($password)) {
         try {
-            if (!$pdo) {
-                throw new Exception("Unable to establish connection to Supabase PostgreSQL database. Check .env configuration.");
+            if (!($pdo instanceof PDO)) {
+                throw new Exception("Unable to establish connection to Supabase PostgreSQL database. Check environment configuration.");
             }
             $stmt = $pdo->prepare("SELECT * FROM users WHERE email ILIKE ? OR username ILIKE ? LIMIT 1");
             $stmt->execute([$email, $email]);
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = 'Invalid email/username or password credentials.';
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $error = 'Database connection error: ' . $e->getMessage();
         }
     } else {

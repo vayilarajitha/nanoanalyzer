@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($otp_input) && !empty($new_password)) {
         try {
-            if (!$pdo) {
+            if (!($pdo instanceof PDO)) {
                 throw new Exception("Unable to establish connection to Supabase PostgreSQL database.");
             }
             $stmt = $pdo->prepare("SELECT * FROM otp_codes WHERE email ILIKE ? AND (code = ? OR otp_code = ?) AND (used = false OR used IS NULL) AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1");
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = 'Invalid or expired OTP code.';
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $error = $e->getMessage();
         }
     } else {

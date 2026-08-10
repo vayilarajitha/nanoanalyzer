@@ -18,6 +18,10 @@ $user_id = get_current_user_id();
 $result_id = $_GET['id'] ?? null;
 
 try {
+    if (!($pdo instanceof PDO)) {
+        throw new Exception("Database connection unavailable.");
+    }
+
     if ($result_id) {
         $stmt = $pdo->prepare("SELECT * FROM analysis_results WHERE id = ? AND user_id = ?");
         $stmt->execute([$result_id, $user_id]);
@@ -31,9 +35,9 @@ try {
     } else {
         $stmt = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC");
         $stmt->execute([$user_id]);
-        $results = $stmt->fetchAll();
+        $results = $stmt->fetchAll() ?: [];
         echo json_encode(['status' => 'success', 'results' => $results]);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

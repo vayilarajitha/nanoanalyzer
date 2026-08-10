@@ -19,12 +19,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        if (!$pdo) throw new Exception("Supabase DB connection not configured.");
+        if (!($pdo instanceof PDO)) throw new Exception("Supabase DB connection not configured.");
         $stmt = $pdo->prepare("SELECT id, name, full_name, email, role, profile_image, avatar_url, institution, bio, created_at FROM users WHERE id = ?");
         $stmt->execute([$user_id]);
         $user = $stmt->fetch();
         echo json_encode(['status' => 'success', 'user' => $user]);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -54,7 +54,7 @@ if ($method === 'POST') {
     }
 
     try {
-        if (!$pdo) throw new Exception("Supabase DB connection not configured.");
+        if (!($pdo instanceof PDO)) throw new Exception("Supabase DB connection not configured.");
         if ($profile_image_url) {
             $stmt = $pdo->prepare("UPDATE users SET name = ?, full_name = ?, institution = ?, bio = ?, profile_image = ?, avatar_url = ? WHERE id = ?");
             $stmt->execute([$name, $name, $institution, $bio, $profile_image_url, $profile_image_url, $user_id]);
@@ -70,7 +70,7 @@ if ($method === 'POST') {
             'message' => 'Profile updated successfully.',
             'profile_image' => $profile_image_url
         ]);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;

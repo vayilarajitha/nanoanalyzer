@@ -20,12 +20,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     // List datasets
     try {
-        if (!$pdo) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
+        if (!($pdo instanceof PDO)) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
         $stmt = $pdo->prepare("SELECT * FROM nanoparticle_datasets WHERE user_id = ? ORDER BY created_at DESC");
         $stmt->execute([$user_id]);
-        $datasets = $stmt->fetchAll();
+        $datasets = $stmt->fetchAll() ?: [];
         echo json_encode(['status' => 'success', 'datasets' => $datasets]);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -67,7 +67,7 @@ if ($method === 'POST') {
     }
 
     try {
-        if (!$pdo) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
+        if (!($pdo instanceof PDO)) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
         $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             mt_rand(0, 0xffff), mt_rand(0, 0xffff),
             mt_rand(0, 0xffff),
@@ -97,7 +97,7 @@ if ($method === 'POST') {
                 'uploaded_file' => $uploaded_file_url
             ]
         ]);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -113,11 +113,11 @@ if ($method === 'DELETE') {
     }
 
     try {
-        if (!$pdo) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
+        if (!($pdo instanceof PDO)) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
         $stmt = $pdo->prepare("DELETE FROM nanoparticle_datasets WHERE id = ? AND user_id = ?");
         $stmt->execute([$id, $user_id]);
         echo json_encode(['status' => 'success', 'message' => 'Dataset deleted successfully.']);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;

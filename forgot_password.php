@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     if (!empty($email)) {
         try {
-            if (!$pdo) {
+            if (!($pdo instanceof PDO)) {
                 throw new Exception("Unable to establish connection to Supabase PostgreSQL database.");
             }
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = 'Email address not found in our records.';
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $error = $e->getMessage();
         }
     } else {

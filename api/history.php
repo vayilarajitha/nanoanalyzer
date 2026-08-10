@@ -17,10 +17,13 @@ require_once __DIR__ . '/../config/db.php';
 $user_id = get_current_user_id();
 
 try {
+    if (!($pdo instanceof PDO)) {
+        throw new Exception("Database connection unavailable.");
+    }
     $stmt = $pdo->prepare("SELECT * FROM history WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$user_id]);
-    $history = $stmt->fetchAll();
+    $history = $stmt->fetchAll() ?: [];
     echo json_encode(['status' => 'success', 'history' => $history]);
-} catch (Exception $e) {
+} catch (Throwable $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

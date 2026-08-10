@@ -34,7 +34,7 @@ switch ($action) {
         }
 
         try {
-            if (!$pdo) {
+            if (!($pdo instanceof PDO)) {
                 throw new Exception("Unable to establish connection to Supabase PostgreSQL database.");
             }
             // Check existing user
@@ -74,7 +74,7 @@ switch ($action) {
                     'role' => 'researcher'
                 ]
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
         }
         break;
@@ -89,7 +89,7 @@ switch ($action) {
         }
 
         try {
-            if (!$pdo) {
+            if (!($pdo instanceof PDO)) {
                 throw new Exception("Unable to establish connection to Supabase PostgreSQL database.");
             }
             $stmt = $pdo->prepare("SELECT * FROM users WHERE email ILIKE ?");
@@ -117,7 +117,7 @@ switch ($action) {
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Invalid email or password.']);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
         }
         break;
@@ -133,11 +133,14 @@ switch ($action) {
         if (is_logged_in()) {
             $user_id = get_current_user_id();
             try {
+                if (!($pdo instanceof PDO)) {
+                    throw new Exception("Database connection unavailable.");
+                }
                 $stmt = $pdo->prepare("SELECT id, name, full_name, email, role, profile_image, created_at FROM users WHERE id = ?");
                 $stmt->execute([$user_id]);
                 $user = $stmt->fetch();
                 echo json_encode(['status' => 'success', 'authenticated' => true, 'user' => $user]);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
             }
         } else {
@@ -153,6 +156,9 @@ switch ($action) {
         }
 
         try {
+            if (!($pdo instanceof PDO)) {
+                throw new Exception("Database connection unavailable.");
+            }
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
@@ -160,7 +166,7 @@ switch ($action) {
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'No registered account found with that email address.']);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         break;

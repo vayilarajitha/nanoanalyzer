@@ -5,12 +5,15 @@ require_login();
 $page_title = 'Analysis History | NanoAnalyzer';
 $user_id = get_current_user_id();
 
-try {
-    $stmt = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$user_id]);
-    $history_rows = $stmt->fetchAll();
-} catch (Exception $e) {
-    $history_rows = [];
+$history_rows = [];
+if ($pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$user_id]);
+        $history_rows = $stmt->fetchAll() ?: [];
+    } catch (Throwable $e) {
+        $history_rows = [];
+    }
 }
 
 include __DIR__ . '/includes/header.php';

@@ -5,12 +5,15 @@ require_login();
 $page_title = 'Researcher Profile | NanoAnalyzer';
 $user_id = get_current_user_id();
 
-try {
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch();
-} catch (PDOException $e) {
-    $user = null;
+$user = null;
+if ($pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch() ?: null;
+    } catch (Throwable $e) {
+        $user = null;
+    }
 }
 
 include __DIR__ . '/includes/header.php';

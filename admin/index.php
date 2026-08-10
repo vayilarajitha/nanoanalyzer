@@ -14,36 +14,49 @@ $page_title = 'Admin Panel | NanoAnalyzer';
 
 // Handle user role toggles or deletion
 if (isset($_POST['action'])) {
-    if ($_POST['action'] === 'toggle_role') {
-        $target_id = trim($_POST['user_id'] ?? '');
-        $new_role = ($_POST['role'] ?? '') === 'admin' ? 'researcher' : 'admin';
-        $pdo->prepare("UPDATE users SET role = ? WHERE id = ?")->execute([$new_role, $target_id]);
-    }
-    if ($_POST['action'] === 'delete_user') {
-        $target_id = trim($_POST['user_id'] ?? '');
-        if ($target_id !== get_current_user_id()) {
-            $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$target_id]);
+    if ($pdo instanceof PDO) {
+        try {
+            if ($_POST['action'] === 'toggle_role') {
+                $target_id = trim($_POST['user_id'] ?? '');
+                $new_role = ($_POST['role'] ?? '') === 'admin' ? 'researcher' : 'admin';
+                $pdo->prepare("UPDATE users SET role = ? WHERE id = ?")->execute([$new_role, $target_id]);
+            }
+            if ($_POST['action'] === 'delete_user') {
+                $target_id = trim($_POST['user_id'] ?? '');
+                if ($target_id !== get_current_user_id()) {
+                    $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$target_id]);
+                }
+            }
+        } catch (Throwable $e) {
+            // Silently continue if update fails
         }
     }
     header('Location: index.php');
     exit;
 }
 
-// Fetch Admin Stats
-try {
-    $user_count = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-    $chat_log_count = $pdo->query("SELECT COUNT(*) FROM chatbot_logs")->fetchColumn();
-    $pred_count = $pdo->query("SELECT COUNT(*) FROM analysis_results")->fetchColumn();
-    
-    // Users List
-    $users_list = $pdo->query("SELECT * FROM users ORDER BY created_at ASC")->fetchAll();
-    
-    // Chatbot Logs List
-    $chat_logs = $pdo->query("SELECT c.*, u.full_name FROM chatbot_logs c LEFT JOIN users u ON c.user_id = u.id ORDER BY c.created_at DESC LIMIT 20")->fetchAll();
+// Fetch Admin Stats with safe fallbacks
+$user_count = 0;
+$chat_log_count = 0;
+$pred_count = 0;
+$users_list = [];
+$chat_logs = [];
 
-} catch (PDOException $e) {
-    $user_count = 0; $chat_log_count = 0; $pred_count = 0;
-    $users_list = []; $chat_logs = [];
+if ($pdo instanceof PDO) {
+    try {
+        $user_count = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn() ?: 0;
+        $chat_log_count = $pdo->query("SELECT COUNT(*) FROM chatbot_logs")->fetchColumn() ?: 0;
+        $pred_count = $pdo->query("SELECT COUNT(*) FROM analysis_results")->fetchColumn() ?: 0;
+        
+        // Users List
+        $users_list = $pdo->query("SELECT * FROM users ORDER BY created_at ASC")->fetchAll() ?: [];
+        
+        // Chatbot Logs List
+        $chat_logs = $pdo->query("SELECT c.*, u.full_name FROM chatbot_logs c LEFT JOIN users u ON c.user_id = u.id ORDER BY c.created_at DESC LIMIT 20")->fetchAll() ?: [];
+    } catch (Throwable $e) {
+        $user_count = 0; $chat_log_count = 0; $pred_count = 0;
+        $users_list = []; $chat_logs = [];
+    }
 }
 
 include __DIR__ . '/../includes/header.php';

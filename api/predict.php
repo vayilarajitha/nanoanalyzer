@@ -110,6 +110,10 @@ $prediction_result_json = json_encode([
 
 // Save to Supabase PostgreSQL / Database
 try {
+    if (!($pdo instanceof PDO)) {
+        throw new Exception("Database connection unavailable.");
+    }
+
     $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
         mt_rand(0, 0xffff), mt_rand(0, 0xffff),
         mt_rand(0, 0xffff),
@@ -142,6 +146,6 @@ try {
         'created_at' => date('Y-m-d H:i:s')
     ]);
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
 }

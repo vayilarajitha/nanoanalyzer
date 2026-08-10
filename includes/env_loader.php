@@ -1,6 +1,6 @@
 <?php
 // NanoUptake Analyzer - Environment Variable Loader
-// Parses .env configuration securely into $_ENV, $_SERVER, and getenv()
+// Reads environment variables from getenv(), $_ENV, $_SERVER, and local .env file
 
 if (!function_exists('load_env')) {
     function load_env($file_path = null) {
@@ -8,11 +8,16 @@ if (!function_exists('load_env')) {
             $file_path = __DIR__ . '/../.env';
         }
 
-        if (!file_exists($file_path)) {
+        // Do not require .env in production if it does not exist
+        if (!file_exists($file_path) || !is_readable($file_path)) {
             return false;
         }
 
-        $lines = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $lines = @file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines === false) {
+            return false;
+        }
+
         foreach ($lines as $line) {
             $line = trim($line);
             if (empty($line) || strpos($line, '#') === 0) {
@@ -30,18 +35,40 @@ if (!function_exists('load_env')) {
                     $value = substr($value, 1, -1);
                 }
 
-                $_ENV[$key] = $value;
-                $_SERVER[$key] = $value;
-                putenv("{$key}={$value}");
+                // Populate getenv, $_ENV, and $_SERVER if not already set by system/cloud env
+                if (getenv($key) === false) {
+                    putenv("{$key}={$value}");
+                }
+                if (!isset($_ENV[$key]) || $_ENV[$key] === '') {
+                    $_ENV[$key] = $value;
+                }
+                if (!isset($_SERVER[$key]) || $_SERVER[$key] === '') {
+                    $_SERVER[$key] = $value;
+                }
             }
         }
         return true;
     }
 }
 
-// Auto load .env on include
+// Auto load local .env if present
 load_env();
 
-function env($key, $default = null) {
-    return $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key) ?: $default;
+if (!function_exists('env')) {
+    function env($key, $default = null) {
+        // 1. Check getenv()
+        $val = getenv($key);
+        if ($val !== false && $val !== '') {
+            return $val;
+        }
+        // 2. Check $_ENV
+        if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
+            return $_ENV[$key];
+        }
+        // 3. Check $_SERVER
+        if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+            return $_SERVER[$key];
+        }
+        return $default;
+    }
 }

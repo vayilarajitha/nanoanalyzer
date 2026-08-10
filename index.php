@@ -3,13 +3,30 @@ require_once __DIR__ . '/config/db.php';
 $page_title = 'NanoAnalyzer | Nanoparticle Uptake & Drug Delivery Simulation Platform';
 include __DIR__ . '/includes/header.php';
 
-// Fetch quick live stats from database
-try {
-    $dataset_count = $pdo->query("SELECT COUNT(*) FROM datasets")->fetchColumn() ?: 5;
-    $prediction_count = $pdo->query("SELECT COUNT(*) FROM predictions")->fetchColumn() ?: 12;
-    $experiment_count = $pdo->query("SELECT COUNT(*) FROM experiments")->fetchColumn() ?: 4;
-} catch (Exception $e) {
-    $dataset_count = 5; $prediction_count = 12; $experiment_count = 4;
+// Fetch quick live stats from database with default fallbacks
+$dataset_count = 5;
+$prediction_count = 12;
+$experiment_count = 4;
+
+if ($pdo instanceof PDO) {
+    try {
+        $ds_res = $pdo->query("SELECT COUNT(*) FROM datasets");
+        if ($ds_res) {
+            $dataset_count = $ds_res->fetchColumn() ?: 5;
+        }
+        $pr_res = $pdo->query("SELECT COUNT(*) FROM predictions");
+        if ($pr_res) {
+            $prediction_count = $pr_res->fetchColumn() ?: 12;
+        }
+        $ex_res = $pdo->query("SELECT COUNT(*) FROM experiments");
+        if ($ex_res) {
+            $experiment_count = $ex_res->fetchColumn() ?: 4;
+        }
+    } catch (Throwable $e) {
+        $dataset_count = 5;
+        $prediction_count = 12;
+        $experiment_count = 4;
+    }
 }
 ?>
 

@@ -5,32 +5,42 @@ require_login();
 $page_title = 'Dashboard | NanoAnalyzer';
 $user_id = get_current_user_id();
 
-// Fetch summary metrics from database
-try {
-    $stmt_ds = $pdo->prepare("SELECT COUNT(*) FROM nanoparticle_datasets WHERE user_id = ?");
-    $stmt_ds->execute([$user_id]);
-    $total_datasets = $stmt_ds->fetchColumn() ?: 0;
+// Fetch summary metrics from database with default fallbacks
+$total_datasets = 0;
+$total_predictions = 0;
+$total_experiments = 0;
+$avg_uptake = '84.2';
+$recent_predictions = [];
 
-    $stmt_pr = $pdo->prepare("SELECT COUNT(*) FROM analysis_results WHERE user_id = ?");
-    $stmt_pr->execute([$user_id]);
-    $total_predictions = $stmt_pr->fetchColumn() ?: 0;
+if ($pdo instanceof PDO) {
+    try {
+        $stmt_ds = $pdo->prepare("SELECT COUNT(*) FROM nanoparticle_datasets WHERE user_id = ?");
+        $stmt_ds->execute([$user_id]);
+        $total_datasets = $stmt_ds->fetchColumn() ?: 0;
 
-    $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM history WHERE user_id = ?");
-    $stmt_ex->execute([$user_id]);
-    $total_experiments = $stmt_ex->fetchColumn() ?: 0;
+        $stmt_pr = $pdo->prepare("SELECT COUNT(*) FROM analysis_results WHERE user_id = ?");
+        $stmt_pr->execute([$user_id]);
+        $total_predictions = $stmt_pr->fetchColumn() ?: 0;
 
-    $stmt_up = $pdo->prepare("SELECT ROUND(AVG(uptake_percentage), 1) FROM analysis_results WHERE user_id = ?");
-    $stmt_up->execute([$user_id]);
-    $avg_uptake = $stmt_up->fetchColumn() ?: '84.2';
+        $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM history WHERE user_id = ?");
+        $stmt_ex->execute([$user_id]);
+        $total_experiments = $stmt_ex->fetchColumn() ?: 0;
 
-    // Fetch recent predictions
-    $stmt_recent = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
-    $stmt_recent->execute([$user_id]);
-    $recent_predictions = $stmt_recent->fetchAll();
+        $stmt_up = $pdo->prepare("SELECT ROUND(AVG(uptake_percentage), 1) FROM analysis_results WHERE user_id = ?");
+        $stmt_up->execute([$user_id]);
+        $avg_uptake = $stmt_up->fetchColumn() ?: '84.2';
 
-} catch (Exception $e) {
-    $total_datasets = 0; $total_predictions = 0; $total_experiments = 0; $avg_uptake = '80.0';
-    $recent_predictions = [];
+        // Fetch recent predictions
+        $stmt_recent = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
+        $stmt_recent->execute([$user_id]);
+        $recent_predictions = $stmt_recent->fetchAll() ?: [];
+    } catch (Throwable $e) {
+        $total_datasets = 0;
+        $total_predictions = 0;
+        $total_experiments = 0;
+        $avg_uptake = '80.0';
+        $recent_predictions = [];
+    }
 }
 
 include __DIR__ . '/includes/header.php';

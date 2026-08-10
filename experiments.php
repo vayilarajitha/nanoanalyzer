@@ -5,13 +5,15 @@ require_login();
 $page_title = 'Lab Experiments | NanoAnalyzer';
 $user_id = get_current_user_id();
 
-try {
-    if (!$pdo) throw new Exception("Supabase DB not connected.");
-    $stmt = $pdo->prepare("SELECT e.*, COALESCE(u.name, u.full_name) as full_name FROM experiments e LEFT JOIN users u ON e.user_id = u.id ORDER BY e.created_at DESC");
-    $stmt->execute();
-    $experiments = $stmt->fetchAll();
-} catch (Exception $e) {
-    $experiments = [];
+$experiments = [];
+if ($pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("SELECT e.*, COALESCE(u.name, u.full_name) as full_name FROM experiments e LEFT JOIN users u ON e.user_id = u.id ORDER BY e.created_at DESC");
+        $stmt->execute();
+        $experiments = $stmt->fetchAll() ?: [];
+    } catch (Throwable $e) {
+        $experiments = [];
+    }
 }
 
 include __DIR__ . '/includes/header.php';

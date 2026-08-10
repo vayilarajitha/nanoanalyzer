@@ -85,6 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Insert into Supabase analysis_results table via PDO
     try {
+        if (!($pdo instanceof PDO)) {
+            throw new Exception("Database connection is currently unavailable. Please verify your Supabase configuration.");
+        }
+
         $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             mt_rand(0, 0xffff), mt_rand(0, 0xffff),
             mt_rand(0, 0xffff),
@@ -121,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         header("Location: results.php?id={$uuid}");
         exit;
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         $error = 'Error saving simulation record: ' . $e->getMessage();
     }
 }

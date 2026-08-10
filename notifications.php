@@ -5,12 +5,15 @@ require_login();
 $page_title = 'Notifications Center | NanoAnalyzer';
 $user_id = get_current_user_id();
 
-try {
-    $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$user_id]);
-    $notifications = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $notifications = [];
+$notifications = [];
+if ($pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$user_id]);
+        $notifications = $stmt->fetchAll() ?: [];
+    } catch (Throwable $e) {
+        $notifications = [];
+    }
 }
 
 include __DIR__ . '/includes/header.php';
