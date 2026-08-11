@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_otp->execute([$user['id'], $email, strval($otp), strval($otp), $expires]);
 
                 $_SESSION['reset_email'] = $email;
-                $_SESSION['demo_otp'] = $otp;
+                $_SESSION['otp_code'] = $otp;
 
                 header('Location: verify_otp.php');
                 exit;

@@ -55,7 +55,7 @@ include __DIR__ . '/includes/header.php';
     <form method="POST" action="login.php">
       <div class="mb-3">
         <label class="form-label">Email or Username</label>
-        <input type="text" name="email" class="form-control" placeholder="admin@nanoanalyzer.io" value="admin@nanoanalyzer.io" required>
+        <input type="text" name="email" class="form-control" placeholder="researcher@nanoanalyzer.io" required>
       </div>
 
       <div class="mb-3">
@@ -63,7 +63,7 @@ include __DIR__ . '/includes/header.php';
           <label class="form-label mb-0">Password</label>
           <a href="forgot_password.php" class="text-cyan small text-decoration-none">Forgot Password?</a>
         </div>
-        <input type="password" name="password" class="form-control" placeholder="••••••••" value="admin123" required>
+        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
       </div>
 
       <button type="submit" class="btn btn-glow-cyan w-100 py-2.5 mb-3">
@@ -72,12 +72,6 @@ include __DIR__ . '/includes/header.php';
 
       <div class="text-center text-muted small">
         Don't have a research account? <a href="register.php" class="text-cyan font-semibold">Register here</a>
-      </div>
-
-      <div class="mt-4 p-3 glass-card rounded small text-muted">
-        <div class="fw-bold text-white mb-1"><i class="bi bi-shield-check text-cyan me-1"></i> Demo Credentials:</div>
-        <div>Admin: <code>admin@nanoanalyzer.io</code> / <code>admin123</code></div>
-        <div>Researcher: <code>alex@nanoanalyzer.io</code> / <code>researcher123</code></div>
       </div>
     </form>
   </div>

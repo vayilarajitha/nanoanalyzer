@@ -3,7 +3,7 @@ require_once __DIR__ . '/config/db.php';
 $page_title = 'Verify OTP Code | NanoAnalyzer';
 
 $email = $_SESSION['reset_email'] ?? '';
-$demo_otp = $_SESSION['demo_otp'] ?? '123456';
+$active_otp = $_SESSION['otp_code'] ?? '';
 $error = '';
 $success = '';
 
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$email, $otp_input, $otp_input]);
             $row = $stmt->fetch();
 
-            if ($row || $otp_input === strval($demo_otp)) {
+            if ($row || (!empty($active_otp) && $otp_input === strval($active_otp))) {
                 // Update password
                 $new_hash = password_hash($new_password, PASSWORD_BCRYPT);
                 $update_user = $pdo->prepare("UPDATE users SET password_hash = ? WHERE email ILIKE ?");
@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($row) {
                     $pdo->prepare("UPDATE otp_codes SET used = true WHERE id = ?")->execute([$row['id']]);
                 }
+                unset($_SESSION['otp_code']);
 
                 $success = 'Password reset successfully! You can now log in with your new password.';
             } else {
@@ -54,14 +55,8 @@ include __DIR__ . '/includes/header.php';
         <i class="bi bi-virus text-cyan"></i> Nano<span class="text-cyan">Analyzer</span>
       </a>
       <h5 class="text-white mt-2">Verify OTP & Reset Password</h5>
-      <p class="text-muted small">Email: <strong><?php echo htmlspecialchars($email ?: 'researcher@nanoanalyzer.io'); ?></strong></p>
+      <p class="text-muted small"><?php if (!empty($email)): ?>Verification sent to: <strong><?php echo htmlspecialchars($email); ?></strong><?php else: ?>Enter your 6-digit verification code below.<?php endif; ?></p>
     </div>
-
-    <?php if ($demo_otp): ?>
-      <div class="alert alert-info glass-panel border-info small text-white mb-3">
-        <i class="bi bi-info-circle me-1"></i> Demo Mode OTP Code: <strong><?php echo $demo_otp; ?></strong>
-      </div>
-    <?php endif; ?>
 
     <?php if ($error): ?>
       <div class="alert alert-danger glass-panel text-white border-danger small mb-3"><?php echo htmlspecialchars($error); ?></div>
