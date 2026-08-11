@@ -2,6 +2,9 @@
 require_once __DIR__ . '/config/db.php';
 $page_title = 'Login | NanoAnalyzer';
 
+$success_msg = $_SESSION['flash_success'] ?? '';
+unset($_SESSION['flash_success']);
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
@@ -47,6 +50,12 @@ include __DIR__ . '/includes/header.php';
       </a>
       <p class="text-muted small mt-1">Biomedical Simulation System Login</p>
     </div>
+
+    <?php if ($success_msg): ?>
+      <div class="alert alert-success glass-panel text-white border-success small mb-3">
+        <i class="bi bi-check-circle-fill me-1 text-success"></i> <?php echo htmlspecialchars($success_msg); ?>
+      </div>
+    <?php endif; ?>
 
     <?php if ($error): ?>
       <div class="alert alert-danger glass-panel text-white border-danger small mb-3"><?php echo htmlspecialchars($error); ?></div>

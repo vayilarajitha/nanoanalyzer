@@ -164,7 +164,7 @@ switch ($action) {
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
-                echo json_encode(['status' => 'success', 'message' => 'Password reset verification code sent to your email.']);
+                echo json_encode(['status' => 'success', 'message' => 'Verification code generated successfully.']);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'No registered account found with that email address.']);
             }
