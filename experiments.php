@@ -44,7 +44,7 @@ include __DIR__ . '/includes/header.php';
                     <span class="badge badge-tech <?php echo $exp['status'] === 'Completed' ? 'emerald' : ($exp['status'] === 'In Progress' ? 'cyan' : 'primary'); ?>">
                       <?php echo htmlspecialchars($exp['status']); ?>
                     </span>
-                    <small class="text-muted"><?php echo date('Y-m-d', strtotime($exp['created_at'])); ?></small>
+                    <small class="text-muted font-mono"><?php echo format_app_datetime($exp['created_at']); ?></small>
                   </div>
                   <h5 class="text-white fw-bold mb-2"><?php echo htmlspecialchars($exp['title']); ?></h5>
                   <p class="text-muted small mb-3"><?php echo htmlspecialchars($exp['description'] ?: 'No detailed protocol description attached.'); ?></p>

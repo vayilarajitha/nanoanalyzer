@@ -143,7 +143,9 @@ try {
         'drug_release_rate' => $drug_release_rate,
         'prediction_result' => json_decode($prediction_result_json, true),
         'optimization_recommendation' => $optimization_recommendation,
-        'created_at' => date('Y-m-d H:i:s')
+        'created_at' => format_app_datetime(time()),
+        'created_at_iso' => date('c'),
+        'timezone' => 'Asia/Kolkata'
     ]);
 
 } catch (Throwable $e) {

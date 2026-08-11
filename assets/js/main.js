@@ -195,3 +195,28 @@ function deleteExperiment(id) {
 function generatePDFReport() {
   window.print();
 }
+
+/**
+ * Universal Date/Time formatter in India Standard Time (Asia/Kolkata, UTC+05:30)
+ * Example: "11 Aug 2026, 01:20 PM"
+ */
+function formatISTDate(dateInput, options = {}) {
+  if (!dateInput) return '—';
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return String(dateInput);
+    const defaultOptions = {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      ...options
+    };
+    return new Intl.DateTimeFormat('en-IN', defaultOptions).format(d);
+  } catch (e) {
+    return String(dateInput);
+  }
+}

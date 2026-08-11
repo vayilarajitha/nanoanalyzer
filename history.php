@@ -54,7 +54,7 @@ include __DIR__ . '/includes/header.php';
               <?php if (count($history_rows) > 0): ?>
                 <?php foreach ($history_rows as $row): ?>
                   <tr>
-                    <td class="text-secondary-custom small"><?php echo date('Y-m-d H:i', strtotime($row['created_at'])); ?></td>
+                    <td class="text-secondary-custom small font-mono"><?php echo format_app_datetime($row['created_at']); ?></td>
                     <td class="fw-bold parameter-value"><?php echo htmlspecialchars($row['analysis_name']); ?></td>
                     <td><span class="badge badge-tech primary"><?php echo htmlspecialchars($row['core_material']); ?></span></td>
                     <td class="parameter-value"><?php echo $row['size_nm']; ?> nm</td>

@@ -38,7 +38,7 @@ include __DIR__ . '/includes/header.php';
               <div class="list-group-item bg-transparent text-white border-secondary p-3">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                   <h6 class="fw-bold mb-0 text-cyan"><i class="bi bi-info-circle me-1"></i> <?php echo htmlspecialchars($note['title']); ?></h6>
-                  <small class="text-muted"><?php echo date('Y-m-d H:i', strtotime($note['created_at'])); ?></small>
+                  <small class="text-muted font-mono"><?php echo format_app_datetime($note['created_at']); ?></small>
                 </div>
                 <p class="text-muted small mb-0"><?php echo htmlspecialchars($note['message']); ?></p>
               </div>

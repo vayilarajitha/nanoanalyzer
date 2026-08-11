@@ -127,16 +127,17 @@ include __DIR__ . '/includes/header.php';
           <a href="history.php" class="btn btn-sm btn-glass">View All History</a>
         </div>
         <div class="table-responsive">
-          <table class="table table-custom">
+          <table class="table table-custom align-middle">
             <thead>
               <tr>
+                <th>Date & Time (IST)</th>
                 <th>Analysis Name</th>
                 <th>Material</th>
                 <th>Size (nm)</th>
                 <th>Charge (mV)</th>
                 <th>Cell Line</th>
                 <th>Uptake %</th>
-                <th>Toxicity Score</th>
+                <th>Toxicity</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -144,6 +145,7 @@ include __DIR__ . '/includes/header.php';
               <?php if (count($recent_predictions) > 0): ?>
                 <?php foreach ($recent_predictions as $row): ?>
                   <tr>
+                    <td class="text-secondary-custom small font-mono"><?php echo format_app_datetime($row['created_at']); ?></td>
                     <td class="fw-semibold text-white"><?php echo htmlspecialchars($row['analysis_name']); ?></td>
                     <td><span class="badge badge-tech primary"><?php echo htmlspecialchars($row['core_material']); ?></span></td>
                     <td><?php echo $row['size_nm']; ?> nm</td>
@@ -158,7 +160,7 @@ include __DIR__ . '/includes/header.php';
                 <?php endforeach; ?>
               <?php else: ?>
                 <tr>
-                  <td colspan="8" class="text-center text-muted py-4">No simulation history found. Click "New Analysis" to start!</td>
+                  <td colspan="9" class="text-center text-muted py-4">No simulation history found. Click "New Analysis" to start!</td>
                 </tr>
               <?php endif; ?>
             </tbody>

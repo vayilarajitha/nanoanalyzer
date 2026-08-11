@@ -2,6 +2,9 @@
 // NanoUptake Analyzer - Supabase Cloud Database Connection Layer
 // Direct PostgreSQL Connection via PDO (pdo_pgsql) driven strictly by environment variables
 
+// Application-wide Timezone Configuration (India Standard Time - IST, UTC+05:30)
+date_default_timezone_set('Asia/Kolkata');
+
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
@@ -279,8 +282,9 @@ if (extension_loaded('pdo_pgsql') && !empty($candidates)) {
             $dsn = "pgsql:host={$cand['host']};port={$cand['port']};dbname={$cand['name']};sslmode={$cand['ssl']};connect_timeout=8";
             $conn = new PDO($dsn, $cand['user'], $cand['pass'], $pdo_options);
             
-            // Validate connection with quick ping
+            // Validate connection with quick ping & synchronize session timezone
             $conn->query("SELECT 1");
+            @$conn->exec("SET timezone TO 'Asia/Kolkata'");
             $pdo = $conn;
             $GLOBALS['db_connection_active'] = $cand['desc'];
             break;
@@ -334,5 +338,52 @@ function require_login() {
     if (!is_logged_in()) {
         header('Location: login.php');
         exit;
+    }
+}
+
+/**
+ * Universal Datetime Formatter for Asia/Kolkata (IST, UTC+05:30)
+ * Safely converts PostgreSQL timestamps, ISO strings, or timestamps into formatted IST strings without double-shifting.
+ * Example: "11 Aug 2026, 01:20 PM"
+ */
+if (!function_exists('format_app_datetime')) {
+    function format_app_datetime($timestamp_raw, $format = 'd M Y, h:i A') {
+        if (empty($timestamp_raw)) {
+            return '—';
+        }
+
+        try {
+            $tz_ist = new DateTimeZone('Asia/Kolkata');
+            
+            if (is_numeric($timestamp_raw)) {
+                $dt = new DateTime('@' . $timestamp_raw);
+                $dt->setTimezone($tz_ist);
+                return $dt->format($format);
+            }
+
+            $raw_str = trim((string)$timestamp_raw);
+            if (preg_match('/[+-]\d{2}(?::?\d{2})?$|Z$/i', $raw_str)) {
+                $dt = new DateTime($raw_str);
+            } else {
+                $dt = new DateTime($raw_str, $tz_ist);
+            }
+            $dt->setTimezone($tz_ist);
+            return $dt->format($format);
+        } catch (Throwable $e) {
+            $ts = @strtotime($timestamp_raw);
+            return $ts ? date($format, $ts) : (string)$timestamp_raw;
+        }
+    }
+}
+
+if (!function_exists('format_app_date')) {
+    function format_app_date($timestamp_raw, $format = 'd M Y') {
+        return format_app_datetime($timestamp_raw, $format);
+    }
+}
+
+if (!function_exists('format_app_time')) {
+    function format_app_time($timestamp_raw, $format = 'h:i A') {
+        return format_app_datetime($timestamp_raw, $format);
     }
 }

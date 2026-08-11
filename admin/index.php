@@ -179,7 +179,7 @@ include __DIR__ . '/../includes/header.php';
                     <td class="text-cyan small" style="max-width: 250px;"><?php echo htmlspecialchars($cl['user_message']); ?></td>
                     <td class="text-muted small" style="max-width: 320px;"><?php echo htmlspecialchars($cl['bot_response']); ?></td>
                     <td><span class="badge badge-tech cyan"><?php echo htmlspecialchars($cl['intent']); ?></span></td>
-                    <td class="text-muted small"><?php echo date('Y-m-d H:i', strtotime($cl['created_at'])); ?></td>
+                    <td class="text-muted small font-mono"><?php echo format_app_datetime($cl['created_at']); ?></td>
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>

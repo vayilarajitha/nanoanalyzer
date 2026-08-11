@@ -23,6 +23,11 @@ try {
     $stmt = $pdo->prepare("SELECT * FROM history WHERE user_id = ? ORDER BY created_at DESC");
     $stmt->execute([$user_id]);
     $history = $stmt->fetchAll() ?: [];
+    foreach ($history as &$h) {
+        $h['created_at_formatted'] = format_app_datetime($h['created_at']);
+        $h['timezone'] = 'Asia/Kolkata';
+    }
+    unset($h);
     echo json_encode(['status' => 'success', 'history' => $history]);
 } catch (Throwable $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);

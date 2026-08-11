@@ -42,7 +42,7 @@ include __DIR__ . '/includes/header.php';
                 <div>
                   <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="badge badge-tech cyan">PDF Report</span>
-                    <small class="text-muted"><?php echo date('M d, Y', strtotime($rep['created_at'])); ?></small>
+                    <small class="text-muted"><?php echo format_app_datetime($rep['created_at']); ?></small>
                   </div>
                   <h5 class="text-white fw-bold mb-2"><?php echo htmlspecialchars($rep['analysis_name']); ?></h5>
                   <div class="glass-card p-2 text-muted small mb-3">

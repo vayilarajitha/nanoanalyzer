@@ -41,7 +41,10 @@ include __DIR__ . '/includes/header.php';
       <!-- Action Toolbar -->
       <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3 no-print">
         <div>
-          <span class="badge badge-tech cyan mb-1"><i class="bi bi-shield-check me-1"></i> Deterministic ID: #<?php echo $row['id']; ?></span>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge badge-tech cyan"><i class="bi bi-shield-check me-1"></i> ID: #<?php echo $row['id']; ?></span>
+            <span class="badge badge-tech primary"><i class="bi bi-clock-history me-1"></i> <?php echo format_app_datetime($row['created_at']); ?> IST</span>
+          </div>
           <h2 class="text-white fw-bold mb-0"><?php echo htmlspecialchars($row['analysis_name']); ?></h2>
         </div>
         <div class="d-flex gap-2">
@@ -58,7 +61,7 @@ include __DIR__ . '/includes/header.php';
             <div class="text-muted">Biomedical Nanoparticle Cellular Uptake & Toxicity Certificate</div>
           </div>
           <div class="text-end">
-            <div>Date: <?php echo date('Y-m-d H:i'); ?></div>
+            <div>Date & Time: <?php echo format_app_datetime($row['created_at'] ?? 'now'); ?> IST</div>
             <div>Researcher: <?php echo htmlspecialchars($row['full_name'] ?? 'Dr. Researcher'); ?></div>
           </div>
         </div>
@@ -157,6 +160,11 @@ include __DIR__ . '/includes/header.php';
             <div class="glass-card mb-3">
               <div class="result-label small uppercase font-bold mb-1">Analytical Conclusion & Recommendation</div>
               <p class="result-value small mb-0"><?php echo htmlspecialchars($row['recommendations']); ?></p>
+            </div>
+
+            <div class="glass-card mb-3">
+              <div class="result-label small uppercase font-bold mb-1">Execution Timestamp (IST)</div>
+              <div class="text-white small fw-semibold"><i class="bi bi-calendar2-check text-cyan me-1"></i> <?php echo format_app_datetime($row['created_at']); ?> (India Standard Time)</div>
             </div>
 
             <div class="glass-card">

@@ -28,6 +28,8 @@ try {
         $result = $stmt->fetch();
 
         if ($result) {
+            $result['created_at_formatted'] = format_app_datetime($result['created_at']);
+            $result['timezone'] = 'Asia/Kolkata';
             echo json_encode(['status' => 'success', 'data' => $result]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Result record not found.']);
@@ -36,6 +38,11 @@ try {
         $stmt = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC");
         $stmt->execute([$user_id]);
         $results = $stmt->fetchAll() ?: [];
+        foreach ($results as &$res) {
+            $res['created_at_formatted'] = format_app_datetime($res['created_at']);
+            $res['timezone'] = 'Asia/Kolkata';
+        }
+        unset($res);
         echo json_encode(['status' => 'success', 'results' => $results]);
     }
 } catch (Throwable $e) {
