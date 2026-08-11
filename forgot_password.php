@@ -10,7 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($email)) {
         try {
             if (!($pdo instanceof PDO)) {
-                throw new Exception("Unable to establish connection to Supabase PostgreSQL database.");
+                $db_err = get_db_error();
+                throw new Exception("Unable to establish connection to Supabase PostgreSQL database. " . ($db_err ? "Details: {$db_err}" : "Please check Render environment variables."));
             }
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
             $stmt->execute([$email]);
