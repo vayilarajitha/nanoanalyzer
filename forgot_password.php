@@ -26,6 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['reset_email'] = $email;
                 $_SESSION['otp_code'] = $otp;
 
+                // Server-side email delivery
+                $subject = "Your NanoAnalyzer Verification Code";
+                $body = "Hello,\n\nYour 6-digit password reset verification code is: {$otp}\n\nThis code will expire in 15 minutes.\n\nNanoAnalyzer Research Platform";
+                $headers = "From: no-reply@nanoanalyzer.io\r\nReply-To: support@nanoanalyzer.io\r\nX-Mailer: PHP/" . phpversion();
+                @mail($email, $subject, $body, $headers);
+
                 header('Location: verify_otp.php');
                 exit;
             } else {
@@ -49,7 +55,7 @@ include __DIR__ . '/includes/header.php';
         <i class="bi bi-virus text-cyan"></i> Nano<span class="text-cyan">Analyzer</span>
       </a>
       <h5 class="text-white mt-2">Password Recovery</h5>
-      <p class="text-muted small">Enter your email address to receive a 6-digit OTP code.</p>
+      <p class="text-muted small">Enter your email address to receive a 6-digit verification code.</p>
     </div>
 
     <?php if ($error): ?>
@@ -58,12 +64,12 @@ include __DIR__ . '/includes/header.php';
 
     <form method="POST" action="forgot_password.php">
       <div class="mb-3">
-        <label class="form-label">Registered Email</label>
-        <input type="email" name="email" class="form-control" placeholder="researcher@nanoanalyzer.io" required>
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" class="form-control" placeholder="Enter your registered email address" required>
       </div>
 
       <button type="submit" class="btn btn-glow-cyan w-100 py-2.5 mb-3">
-        <i class="bi bi-key-fill me-1"></i> Send OTP Verification Code
+        <i class="bi bi-key-fill me-1"></i> Send Verification Code
       </button>
 
       <div class="text-center text-muted small">

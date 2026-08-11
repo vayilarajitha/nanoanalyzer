@@ -59,7 +59,7 @@ include __DIR__ . '/includes/header.php';
       <a href="index.php" class="text-decoration-none text-white brand-font fw-bold fs-3 d-inline-flex align-items-center gap-2">
         <i class="bi bi-virus text-cyan"></i> Nano<span class="text-cyan">Analyzer</span>
       </a>
-      <p class="text-muted small mt-1">Create Researcher Simulation Profile</p>
+      <p class="text-muted small mt-1">Create Researcher Account</p>
     </div>
 
     <?php if ($error): ?>
@@ -69,32 +69,32 @@ include __DIR__ . '/includes/header.php';
     <form method="POST" action="register.php">
       <div class="mb-3">
         <label class="form-label">Full Name</label>
-        <input type="text" name="full_name" class="form-control" placeholder="Dr. Jane Doe" required>
+        <input type="text" name="full_name" class="form-control" placeholder="Enter your full name" required>
       </div>
 
       <div class="row g-2 mb-3">
         <div class="col-md-6">
           <label class="form-label">Username</label>
-          <input type="text" name="username" class="form-control" placeholder="janedoe" required>
+          <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
         </div>
         <div class="col-md-6">
           <label class="form-label">Institution / Lab</label>
-          <input type="text" name="institution" class="form-control" placeholder="MIT BioLab" required>
+          <input type="text" name="institution" class="form-control" placeholder="Institution / Laboratory" required>
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Email Address</label>
-        <input type="email" name="email" class="form-control" placeholder="jane@biolab.org" required>
+        <input type="email" name="email" class="form-control" placeholder="Enter your email address" required>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Password</label>
-        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        <input type="password" name="password" class="form-control" placeholder="Enter a secure password" required>
       </div>
 
       <button type="submit" class="btn btn-glow-primary w-100 py-2.5 mb-3">
-        <i class="bi bi-person-plus-fill me-1"></i> Register Researcher Account
+        <i class="bi bi-person-plus-fill me-1"></i> Register Account
       </button>
 
       <div class="text-center text-muted small">

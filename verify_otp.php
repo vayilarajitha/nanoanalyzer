@@ -54,8 +54,8 @@ include __DIR__ . '/includes/header.php';
       <a href="index.php" class="text-decoration-none text-white brand-font fw-bold fs-3 d-inline-flex align-items-center gap-2">
         <i class="bi bi-virus text-cyan"></i> Nano<span class="text-cyan">Analyzer</span>
       </a>
-      <h5 class="text-white mt-2">Verify OTP & Reset Password</h5>
-      <p class="text-muted small"><?php if (!empty($email)): ?>Verification sent to: <strong><?php echo htmlspecialchars($email); ?></strong><?php else: ?>Enter your 6-digit verification code below.<?php endif; ?></p>
+      <h5 class="text-white mt-2">Verification Code</h5>
+      <p class="text-muted small">Enter the 6-digit verification code sent to your email.</p>
     </div>
 
     <?php if ($error): ?>
@@ -68,13 +68,13 @@ include __DIR__ . '/includes/header.php';
     <?php else: ?>
       <form method="POST" action="verify_otp.php">
         <div class="mb-3">
-          <label class="form-label">6-Digit OTP Code</label>
-          <input type="text" name="otp_code" class="form-control text-center fs-4 letter-spacing-2" placeholder="123456" maxlength="6" required>
+          <label class="form-label">Verification Code</label>
+          <input type="text" name="otp_code" class="form-control text-center fs-4 letter-spacing-2" placeholder="000000" maxlength="6" required>
         </div>
 
         <div class="mb-3">
           <label class="form-label">New Password</label>
-          <input type="password" name="new_password" class="form-control" placeholder="••••••••" required>
+          <input type="password" name="new_password" class="form-control" placeholder="Enter your new password" required>
         </div>
 
         <button type="submit" class="btn btn-glow-primary w-100 py-2.5 mb-3">

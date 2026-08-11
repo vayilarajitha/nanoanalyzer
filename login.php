@@ -54,8 +54,8 @@ include __DIR__ . '/includes/header.php';
 
     <form method="POST" action="login.php">
       <div class="mb-3">
-        <label class="form-label">Email or Username</label>
-        <input type="text" name="email" class="form-control" placeholder="researcher@nanoanalyzer.io" required>
+        <label class="form-label">Email Address or Username</label>
+        <input type="text" name="email" class="form-control" placeholder="Enter your email or username" required>
       </div>
 
       <div class="mb-3">
@@ -63,7 +63,7 @@ include __DIR__ . '/includes/header.php';
           <label class="form-label mb-0">Password</label>
           <a href="forgot_password.php" class="text-cyan small text-decoration-none">Forgot Password?</a>
         </div>
-        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+        <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
       </div>
 
       <button type="submit" class="btn btn-glow-cyan w-100 py-2.5 mb-3">
