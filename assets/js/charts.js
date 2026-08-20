@@ -54,6 +54,25 @@ function handleNonEmptyChart(ctx) {
   ctx.style.display = 'block';
 }
 
+function handleChartNote(ctx, message) {
+  if (!ctx) return;
+  const container = ctx.parentElement;
+  if (!container) return;
+  let note = container.querySelector('.chart-info-note');
+  if (message) {
+    if (!note) {
+      note = document.createElement('div');
+      note.className = 'chart-info-note text-cyan small text-center mt-2 opacity-75';
+      note.style.fontSize = '0.8rem';
+      container.appendChild(note);
+    }
+    note.innerHTML = `<i class="bi bi-info-circle me-1"></i> ${message}`;
+    note.style.display = 'block';
+  } else if (note) {
+    note.style.display = 'none';
+  }
+}
+
 // 1. Particle Size vs Cellular Uptake Efficiency (Scatter / Line Curve)
 function renderUptakeSizeChart(chartData) {
   const ctx = document.getElementById('uptakeSizeChart');
@@ -65,11 +84,19 @@ function renderUptakeSizeChart(chartData) {
   }
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
+    handleChartNote(ctx, null);
     handleEmptyChart(ctx, 'No analysis data available');
     return;
   }
 
   handleNonEmptyChart(ctx);
+
+  const isSinglePoint = (chartData.length === 1);
+  if (isSinglePoint) {
+    handleChartNote(ctx, 'Only one analysis point available');
+  } else {
+    handleChartNote(ctx, null);
+  }
 
   uptakeSizeChartInstance = new Chart(ctx, {
     type: 'line',
@@ -81,18 +108,28 @@ function renderUptakeSizeChart(chartData) {
         borderColor: '#06b6d4',
         backgroundColor: 'rgba(6, 182, 212, 0.15)',
         borderWidth: 3,
-        tension: 0.4,
-        fill: true,
+        tension: 0.3,
+        fill: !isSinglePoint,
         pointBackgroundColor: '#6366f1',
-        pointRadius: 6,
-        pointHoverRadius: 9
+        pointBorderColor: '#06b6d4',
+        pointBorderWidth: 2,
+        pointRadius: isSinglePoint ? 9 : 6,
+        pointHoverRadius: isSinglePoint ? 12 : 9
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#e2e8f0', font: { family: 'Inter', weight: '600' } } }
+        legend: { labels: { color: '#e2e8f0', font: { family: 'Inter', weight: '600' } } },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function(context) {
+              return `Cellular Uptake: ${context.parsed.y}%`;
+            }
+          }
+        }
       },
       scales: {
         x: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#cbd5e1', font: { weight: '500' } } },
