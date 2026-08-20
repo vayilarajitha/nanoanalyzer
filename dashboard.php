@@ -16,19 +16,34 @@ if ($pdo instanceof PDO) {
     try {
         $stmt_ds = $pdo->prepare("SELECT COUNT(*) FROM nanoparticle_datasets WHERE user_id = ?");
         $stmt_ds->execute([$user_id]);
-        $total_datasets = $stmt_ds->fetchColumn() ?: 0;
+        $total_datasets = (int)($stmt_ds->fetchColumn() ?: 0);
+        if ($total_datasets === 0) {
+            $stmt_ds_all = $pdo->query("SELECT COUNT(*) FROM nanoparticle_datasets");
+            $total_datasets = $stmt_ds_all ? (int)($stmt_ds_all->fetchColumn() ?: 0) : 0;
+        }
 
         $stmt_pr = $pdo->prepare("SELECT COUNT(*) FROM analysis_results WHERE user_id = ?");
         $stmt_pr->execute([$user_id]);
-        $total_predictions = $stmt_pr->fetchColumn() ?: 0;
+        $total_predictions = (int)($stmt_pr->fetchColumn() ?: 0);
 
         $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM history WHERE user_id = ?");
         $stmt_ex->execute([$user_id]);
-        $total_experiments = $stmt_ex->fetchColumn() ?: 0;
+        $total_experiments = (int)($stmt_ex->fetchColumn() ?: 0);
 
         $stmt_up = $pdo->prepare("SELECT ROUND(AVG(COALESCE(predicted_uptake_percent, uptake_percentage)), 1) FROM analysis_results WHERE user_id = ?");
         $stmt_up->execute([$user_id]);
         $val_up = $stmt_up->fetchColumn();
+
+        if ($val_up === false || $val_up === null || $val_up === '') {
+            $stmt_up_ds = $pdo->prepare("SELECT ROUND(AVG(uptake_efficiency_percent), 1) FROM nanoparticle_datasets WHERE user_id = ? AND uptake_efficiency_percent IS NOT NULL");
+            $stmt_up_ds->execute([$user_id]);
+            $val_up = $stmt_up_ds->fetchColumn();
+            if (($val_up === false || $val_up === null || $val_up === '') && $total_datasets > 0) {
+                $stmt_up_all = $pdo->query("SELECT ROUND(AVG(uptake_efficiency_percent), 1) FROM nanoparticle_datasets WHERE uptake_efficiency_percent IS NOT NULL");
+                $val_up = $stmt_up_all ? $stmt_up_all->fetchColumn() : null;
+            }
+        }
+
         $avg_uptake = ($val_up !== false && $val_up !== null && $val_up !== '') ? $val_up : null;
 
         // Fetch recent predictions
