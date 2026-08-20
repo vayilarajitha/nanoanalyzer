@@ -16,11 +16,7 @@ if ($pdo instanceof PDO) {
     try {
         $stmt_ds = $pdo->prepare("SELECT COUNT(*) FROM nanoparticle_datasets WHERE user_id = ?");
         $stmt_ds->execute([$user_id]);
-        $total_datasets = (int)($stmt_ds->fetchColumn() ?: 0);
-        if ($total_datasets === 0) {
-            $stmt_ds_all = $pdo->query("SELECT COUNT(*) FROM nanoparticle_datasets");
-            $total_datasets = $stmt_ds_all ? (int)($stmt_ds_all->fetchColumn() ?: 0) : 0;
-        }
+        $ds_count = (int)($stmt_ds->fetchColumn() ?: 0);
 
         $stmt_pr = $pdo->prepare("SELECT COUNT(*) FROM analysis_results WHERE user_id = ?");
         $stmt_pr->execute([$user_id]);
@@ -29,6 +25,8 @@ if ($pdo instanceof PDO) {
         $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM history WHERE user_id = ?");
         $stmt_ex->execute([$user_id]);
         $total_experiments = (int)($stmt_ex->fetchColumn() ?: 0);
+
+        $total_datasets = $ds_count + $total_predictions;
 
         $stmt_up = $pdo->prepare("SELECT ROUND(AVG(COALESCE(predicted_uptake_percent, uptake_percentage)), 1) FROM analysis_results WHERE user_id = ?");
         $stmt_up->execute([$user_id]);

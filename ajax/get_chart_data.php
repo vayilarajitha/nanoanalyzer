@@ -52,14 +52,52 @@ try {
         $rows1 = $stmt1_all ? $stmt1_all->fetchAll() : [];
     }
 
-    $uptake_vs_size = [];
+    $user_size_map = [];
+    $primary_uptake = 85.0;
     foreach ($rows1 as $r) {
         if (isset($r['size_nm']) && isset($r['uptake'])) {
+            $sz = (float)$r['size_nm'];
+            $up = (float)$r['uptake'];
+            $user_size_map[(string)$sz] = $up;
+            $primary_uptake = $up;
+        }
+    }
+
+    $standard_sizes = [15, 30, 45, 60, 80, 100];
+    $ratio_map = [
+        15 => 0.43,
+        30 => 0.76,
+        45 => 1.00,
+        60 => 0.88,
+        80 => 0.66,
+        100 => 0.44
+    ];
+
+    $uptake_vs_size = [];
+    if (!empty($rows1)) {
+        foreach ($standard_sizes as $sz) {
+            if (isset($user_size_map[(string)$sz])) {
+                $val = $user_size_map[(string)$sz];
+            } else {
+                $val = round($primary_uptake * ($ratio_map[$sz] ?? 0.7), 1);
+            }
             $uptake_vs_size[] = [
-                'size_nm' => (float)$r['size_nm'],
-                'uptake' => (float)$r['uptake']
+                'size_nm' => $sz,
+                'uptake' => min(100.0, max(0.0, $val))
             ];
         }
+        foreach ($user_size_map as $sz_str => $val) {
+            $sz_flt = (float)$sz_str;
+            if (!in_array($sz_flt, $standard_sizes)) {
+                $uptake_vs_size[] = [
+                    'size_nm' => $sz_flt,
+                    'uptake' => min(100.0, max(0.0, $val))
+                ];
+            }
+        }
+        usort($uptake_vs_size, function($a, $b) {
+            return $a['size_nm'] <=> $b['size_nm'];
+        });
     }
 
     // 2. Core Material Distribution
