@@ -11,39 +11,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password'] ?? '');
 
     if (!empty($full_name) && !empty($email) && !empty($password)) {
-        try {
-            if (!($pdo instanceof PDO)) {
-                $db_err = get_db_error();
-                throw new Exception("Unable to establish connection to Supabase PostgreSQL database. " . ($db_err ? "Details: {$db_err}" : "Please check Render environment variables."));
-            }
-            // Check existing email
-            $check = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
-            $check->execute([$email]);
-            if ($check->fetch()) {
-                $error = 'Email address is already registered.';
-            } else {
-                $hash = password_hash($password, PASSWORD_BCRYPT);
-                $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-                    mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-                    mt_rand(0, 0xffff),
-                    mt_rand(0, 0x0fff) | 0x4000,
-                    mt_rand(0, 0x3fff) | 0x8000,
-                    mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-                );
-                
-                $stmt = $pdo->prepare("INSERT INTO users (id, name, full_name, username, email, password_hash, institution, role) VALUES (?, ?, ?, ?, ?, ?, ?, 'researcher')");
-                $stmt->execute([$uuid, $full_name, $full_name, $username, $email, $hash, $institution]);
-                
-                $_SESSION['user_id'] = $uuid;
-                $_SESSION['username'] = $username ?: $full_name;
-                $_SESSION['full_name'] = $full_name;
-                $_SESSION['role'] = 'researcher';
+        if (preg_match('/[A-Z]/', $email)) {
+            $error = 'Email address must be in lowercase.';
+        } else {
+            try {
+                if (!($pdo instanceof PDO)) {
+                    $db_err = get_db_error();
+                    throw new Exception("Unable to establish connection to Supabase PostgreSQL database. " . ($db_err ? "Details: {$db_err}" : "Please check Render environment variables."));
+                }
+                // Check existing email
+                $check = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
+                $check->execute([$email]);
+                if ($check->fetch()) {
+                    $error = 'Email address is already registered.';
+                } else {
+                    $hash = password_hash($password, PASSWORD_BCRYPT);
+                    $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+                        mt_rand(0, 0xffff),
+                        mt_rand(0, 0x0fff) | 0x4000,
+                        mt_rand(0, 0x3fff) | 0x8000,
+                        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+                    );
+                    
+                    $stmt = $pdo->prepare("INSERT INTO users (id, name, full_name, username, email, password_hash, institution, role) VALUES (?, ?, ?, ?, ?, ?, ?, 'researcher')");
+                    $stmt->execute([$uuid, $full_name, $full_name, $username, $email, $hash, $institution]);
+                    
+                    $_SESSION['user_id'] = $uuid;
+                    $_SESSION['username'] = $username ?: $full_name;
+                    $_SESSION['full_name'] = $full_name;
+                    $_SESSION['role'] = 'researcher';
 
-                header('Location: dashboard.php');
-                exit;
+                    header('Location: dashboard.php');
+                    exit;
+                }
+            } catch (Throwable $e) {
+                $error = 'Registration error: ' . $e->getMessage();
             }
-        } catch (Throwable $e) {
-            $error = 'Registration error: ' . $e->getMessage();
         }
     } else {
         $error = 'Please fill out all required fields.';
@@ -62,11 +66,13 @@ include __DIR__ . '/includes/header.php';
       <p class="text-muted small mt-1">Create Researcher Account</p>
     </div>
 
+    <div id="emailJsError" class="alert alert-danger glass-panel text-white border-danger small mb-3" style="display: none;">Email address must be in lowercase.</div>
+
     <?php if ($error): ?>
       <div class="alert alert-danger glass-panel text-white border-danger small mb-3"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
 
-    <form method="POST" action="register.php">
+    <form method="POST" action="register.php" id="registerForm">
       <div class="mb-3">
         <label class="form-label">Full Name</label>
         <input type="text" name="full_name" class="form-control" placeholder="Enter your full name" required>
@@ -85,7 +91,7 @@ include __DIR__ . '/includes/header.php';
 
       <div class="mb-3">
         <label class="form-label">Email Address</label>
-        <input type="email" name="email" class="form-control" placeholder="Enter your email address" required>
+        <input type="email" name="email" class="form-control" placeholder="Enter your email address" required pattern="^[^A-Z]+$" title="Email address must be in lowercase.">
       </div>
 
       <div class="mb-3">
@@ -103,5 +109,44 @@ include __DIR__ . '/includes/header.php';
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const registerForm = document.getElementById('registerForm');
+  const emailInput = registerForm ? registerForm.querySelector('input[name="email"]') : null;
+  const emailJsError = document.getElementById('emailJsError');
+
+  if (registerForm && emailInput) {
+    registerForm.addEventListener('submit', function(e) {
+      const emailVal = emailInput.value.trim();
+      if (/[A-Z]/.test(emailVal)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (emailJsError) {
+          emailJsError.style.display = 'block';
+        }
+        emailInput.focus();
+        return false;
+      } else {
+        if (emailJsError) {
+          emailJsError.style.display = 'none';
+        }
+      }
+    });
+
+    emailInput.addEventListener('input', function() {
+      if (/[A-Z]/.test(this.value.trim())) {
+        if (emailJsError) {
+          emailJsError.style.display = 'block';
+        }
+      } else {
+        if (emailJsError) {
+          emailJsError.style.display = 'none';
+        }
+      }
+    });
+  }
+});
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

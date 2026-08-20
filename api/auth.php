@@ -20,13 +20,20 @@ $action = $input['action'] ?? $_GET['action'] ?? '';
 switch ($action) {
     case 'register':
         $name = trim($input['name'] ?? '');
-        $email = trim(strtolower($input['email'] ?? ''));
+        $raw_email = trim($input['email'] ?? '');
         $password = $input['password'] ?? '';
 
-        if (empty($name) || empty($email) || empty($password)) {
+        if (empty($name) || empty($raw_email) || empty($password)) {
             echo json_encode(['status' => 'error', 'message' => 'Please provide name, email, and password.']);
             exit;
         }
+
+        if (preg_match('/[A-Z]/', $raw_email)) {
+            echo json_encode(['status' => 'error', 'message' => 'Email address must be in lowercase.']);
+            exit;
+        }
+
+        $email = $raw_email;
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             echo json_encode(['status' => 'error', 'message' => 'Invalid email address format.']);
