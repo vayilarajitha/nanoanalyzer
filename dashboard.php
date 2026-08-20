@@ -36,15 +36,11 @@ if ($pdo instanceof PDO) {
             $stmt_up_ds = $pdo->prepare("SELECT ROUND(AVG(uptake_efficiency_percent), 1) FROM nanoparticle_datasets WHERE user_id = ? AND uptake_efficiency_percent IS NOT NULL");
             $stmt_up_ds->execute([$user_id]);
             $val_up = $stmt_up_ds->fetchColumn();
-            if (($val_up === false || $val_up === null || $val_up === '') && $total_datasets > 0) {
-                $stmt_up_all = $pdo->query("SELECT ROUND(AVG(uptake_efficiency_percent), 1) FROM nanoparticle_datasets WHERE uptake_efficiency_percent IS NOT NULL");
-                $val_up = $stmt_up_all ? $stmt_up_all->fetchColumn() : null;
-            }
         }
 
         $avg_uptake = ($val_up !== false && $val_up !== null && $val_up !== '') ? $val_up : null;
 
-        // Fetch recent predictions
+        // Fetch recent predictions strictly by user_id
         $stmt_recent = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
         $stmt_recent->execute([$user_id]);
         $recent_predictions = $stmt_recent->fetchAll() ?: [];

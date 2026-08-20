@@ -12,7 +12,7 @@ try {
 
     $user_id = get_current_user_id();
 
-    // 1. Particle Size vs Uptake Efficiency
+    // 1. Particle Size vs Uptake Efficiency (Strictly from user's analysis_results / datasets)
     $stmt1 = $pdo->prepare("
         SELECT 
             size_nm, 
@@ -39,68 +39,17 @@ try {
         $rows1 = $stmt1_ds ? $stmt1_ds->fetchAll() : [];
     }
 
-    if (empty($rows1)) {
-        $stmt1_all = $pdo->query("
-            SELECT 
-                COALESCE(size_nm, nanoparticle_size) as size_nm, 
-                ROUND(AVG(uptake_efficiency_percent), 1) as uptake 
-            FROM nanoparticle_datasets 
-            WHERE (size_nm IS NOT NULL OR nanoparticle_size IS NOT NULL) AND uptake_efficiency_percent IS NOT NULL
-            GROUP BY COALESCE(size_nm, nanoparticle_size) 
-            ORDER BY size_nm ASC
-        ");
-        $rows1 = $stmt1_all ? $stmt1_all->fetchAll() : [];
-    }
-
-    $user_size_map = [];
-    $primary_uptake = 85.0;
+    $uptake_vs_size = [];
     foreach ($rows1 as $r) {
         if (isset($r['size_nm']) && isset($r['uptake'])) {
-            $sz = (float)$r['size_nm'];
-            $up = (float)$r['uptake'];
-            $user_size_map[(string)$sz] = $up;
-            $primary_uptake = $up;
-        }
-    }
-
-    $standard_sizes = [15, 30, 45, 60, 80, 100];
-    $ratio_map = [
-        15 => 0.43,
-        30 => 0.76,
-        45 => 1.00,
-        60 => 0.88,
-        80 => 0.66,
-        100 => 0.44
-    ];
-
-    $uptake_vs_size = [];
-    if (!empty($rows1)) {
-        foreach ($standard_sizes as $sz) {
-            if (isset($user_size_map[(string)$sz])) {
-                $val = $user_size_map[(string)$sz];
-            } else {
-                $val = round($primary_uptake * ($ratio_map[$sz] ?? 0.7), 1);
-            }
             $uptake_vs_size[] = [
-                'size_nm' => $sz,
-                'uptake' => min(100.0, max(0.0, $val))
+                'size_nm' => (float)$r['size_nm'],
+                'uptake' => (float)$r['uptake']
             ];
         }
-        foreach ($user_size_map as $sz_str => $val) {
-            $sz_flt = (float)$sz_str;
-            if (!in_array($sz_flt, $standard_sizes)) {
-                $uptake_vs_size[] = [
-                    'size_nm' => $sz_flt,
-                    'uptake' => min(100.0, max(0.0, $val))
-                ];
-            }
-        }
-        usort($uptake_vs_size, function($a, $b) {
-            return $a['size_nm'] <=> $b['size_nm'];
-        });
     }
 
-    // 2. Core Material Distribution
+    // 2. Core Material Distribution (Strictly from user's analysis_results / datasets)
     $material_counts = [];
 
     // Fetch from analysis_results for user
@@ -133,21 +82,6 @@ try {
         }
     }
 
-    // If empty for user, fetch system nanoparticle_datasets
-    if (empty($material_counts)) {
-        $stmt2_all = $pdo->query("
-            SELECT COALESCE(NULLIF(core_material, ''), NULLIF(material, ''), 'Unspecified') as material, COUNT(*) as cnt 
-            FROM nanoparticle_datasets 
-            GROUP BY COALESCE(NULLIF(core_material, ''), NULLIF(material, ''), 'Unspecified')
-        ");
-        if ($stmt2_all) {
-            foreach ($stmt2_all->fetchAll() as $r) {
-                $mat = (string)$r['material'];
-                $material_counts[$mat] = ($material_counts[$mat] ?? 0) + (int)$r['cnt'];
-            }
-        }
-    }
-
     $material_dist = [];
     foreach ($material_counts as $mat => $cnt) {
         $material_dist[] = [
@@ -159,7 +93,7 @@ try {
         return $b['count'] - $a['count'];
     });
 
-    // 3. Average Toxicity Score by Core Material
+    // 3. Average Toxicity Score by Core Material (Strictly from user's analysis_results / datasets)
     $stmt3_ar = $pdo->prepare("
         SELECT 
             COALESCE(NULLIF(core_material, ''), 'Unspecified') as material, 
@@ -184,18 +118,6 @@ try {
         $rows3 = $stmt3_ds ? $stmt3_ds->fetchAll() : [];
     }
 
-    if (empty($rows3)) {
-        $stmt3_all = $pdo->query("
-            SELECT 
-                COALESCE(NULLIF(core_material, ''), NULLIF(material, ''), 'Unspecified') as material, 
-                ROUND(AVG(COALESCE(toxicity_score, 0)), 1) as avg_toxicity 
-            FROM nanoparticle_datasets 
-            WHERE toxicity_score IS NOT NULL
-            GROUP BY COALESCE(NULLIF(core_material, ''), NULLIF(material, ''), 'Unspecified')
-        ");
-        $rows3 = $stmt3_all ? $stmt3_all->fetchAll() : [];
-    }
-
     $toxicity_by_material = [];
     foreach ($rows3 as $r) {
         $toxicity_by_material[] = [
@@ -204,7 +126,7 @@ try {
         ];
     }
 
-    // 4. Uptake Efficiency by Target Cell Line
+    // 4. Uptake Efficiency by Target Cell Line (Strictly from user's analysis_results / datasets)
     $stmt4_ar = $pdo->prepare("
         SELECT 
             COALESCE(NULLIF(cell_type, ''), 'Unspecified') as cell_line, 
@@ -227,18 +149,6 @@ try {
         ");
         $stmt4_ds->execute([$user_id]);
         $rows4 = $stmt4_ds ? $stmt4_ds->fetchAll() : [];
-    }
-
-    if (empty($rows4)) {
-        $stmt4_all = $pdo->query("
-            SELECT 
-                COALESCE(NULLIF(cell_type, ''), 'Unspecified') as cell_line, 
-                ROUND(AVG(COALESCE(uptake_efficiency_percent, 0)), 1) as avg_uptake 
-            FROM nanoparticle_datasets 
-            WHERE cell_type IS NOT NULL
-            GROUP BY COALESCE(NULLIF(cell_type, ''), 'Unspecified')
-        ");
-        $rows4 = $stmt4_all ? $stmt4_all->fetchAll() : [];
     }
 
     $cell_line_uptake = [];
