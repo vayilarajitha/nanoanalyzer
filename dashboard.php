@@ -9,7 +9,7 @@ $user_id = get_current_user_id();
 $total_datasets = 0;
 $total_predictions = 0;
 $total_experiments = 0;
-$avg_uptake = '84.2';
+$avg_uptake = null;
 $recent_predictions = [];
 
 if ($pdo instanceof PDO) {
@@ -26,9 +26,10 @@ if ($pdo instanceof PDO) {
         $stmt_ex->execute([$user_id]);
         $total_experiments = $stmt_ex->fetchColumn() ?: 0;
 
-        $stmt_up = $pdo->prepare("SELECT ROUND(AVG(uptake_percentage), 1) FROM analysis_results WHERE user_id = ?");
+        $stmt_up = $pdo->prepare("SELECT ROUND(AVG(COALESCE(predicted_uptake_percent, uptake_percentage)), 1) FROM analysis_results WHERE user_id = ?");
         $stmt_up->execute([$user_id]);
-        $avg_uptake = $stmt_up->fetchColumn() ?: '84.2';
+        $val_up = $stmt_up->fetchColumn();
+        $avg_uptake = ($val_up !== false && $val_up !== null && $val_up !== '') ? $val_up : null;
 
         // Fetch recent predictions
         $stmt_recent = $pdo->prepare("SELECT * FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
@@ -38,7 +39,7 @@ if ($pdo instanceof PDO) {
         $total_datasets = 0;
         $total_predictions = 0;
         $total_experiments = 0;
-        $avg_uptake = '80.0';
+        $avg_uptake = null;
         $recent_predictions = [];
     }
 }
@@ -84,7 +85,7 @@ include __DIR__ . '/includes/header.php';
         <div class="col-xl-3 col-sm-6">
           <div class="glass-panel stat-card">
             <div class="stat-icon emerald"><i class="bi bi-activity"></i></div>
-            <div class="stat-number text-emerald"><?php echo $avg_uptake; ?>%</div>
+            <div class="stat-number text-emerald"><?php echo ($avg_uptake !== null && $avg_uptake !== '') ? ($avg_uptake . '%') : '—'; ?></div>
             <div class="text-muted font-semibold">Mean Uptake Rate</div>
           </div>
         </div>

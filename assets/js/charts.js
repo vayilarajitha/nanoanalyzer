@@ -3,6 +3,11 @@
  * High-Contrast Accessible Chart Formatting driven by ajax/get_chart_data.php
  */
 
+let uptakeSizeChartInstance = null;
+let materialDistChartInstance = null;
+let toxicityChartInstance = null;
+let cellLineChartInstance = null;
+
 document.addEventListener('DOMContentLoaded', function () {
   fetchChartData();
 });
@@ -21,12 +26,52 @@ function fetchChartData() {
     .catch(err => console.error('Chart Data Loading Error:', err));
 }
 
+function handleEmptyChart(ctx, message) {
+  if (!ctx) return;
+  const container = ctx.parentElement;
+  if (!container) return;
+
+  ctx.style.display = 'none';
+  let emptyMsg = container.querySelector('.chart-empty-msg');
+  if (!emptyMsg) {
+    emptyMsg = document.createElement('div');
+    emptyMsg.className = 'chart-empty-msg text-muted d-flex align-items-center justify-content-center h-100';
+    container.appendChild(emptyMsg);
+  }
+  emptyMsg.textContent = message;
+  emptyMsg.style.display = 'flex';
+}
+
+function handleNonEmptyChart(ctx) {
+  if (!ctx) return;
+  const container = ctx.parentElement;
+  if (container) {
+    const emptyMsg = container.querySelector('.chart-empty-msg');
+    if (emptyMsg) {
+      emptyMsg.style.display = 'none';
+    }
+  }
+  ctx.style.display = 'block';
+}
+
 // 1. Particle Size vs Cellular Uptake Efficiency (Scatter / Line Curve)
 function renderUptakeSizeChart(chartData) {
   const ctx = document.getElementById('uptakeSizeChart');
   if (!ctx) return;
 
-  new Chart(ctx, {
+  if (uptakeSizeChartInstance) {
+    uptakeSizeChartInstance.destroy();
+    uptakeSizeChartInstance = null;
+  }
+
+  if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
+    handleEmptyChart(ctx, 'No analysis data available');
+    return;
+  }
+
+  handleNonEmptyChart(ctx);
+
+  uptakeSizeChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: chartData.map(d => `${d.size_nm} nm`),
@@ -62,7 +107,19 @@ function renderMaterialDistChart(chartData) {
   const ctx = document.getElementById('materialDistChart');
   if (!ctx) return;
 
-  new Chart(ctx, {
+  if (materialDistChartInstance) {
+    materialDistChartInstance.destroy();
+    materialDistChartInstance = null;
+  }
+
+  if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
+    handleEmptyChart(ctx, 'No data available');
+    return;
+  }
+
+  handleNonEmptyChart(ctx);
+
+  materialDistChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: chartData.map(d => d.material),
@@ -88,7 +145,19 @@ function renderToxicityChart(chartData) {
   const ctx = document.getElementById('toxicityChart');
   if (!ctx) return;
 
-  new Chart(ctx, {
+  if (toxicityChartInstance) {
+    toxicityChartInstance.destroy();
+    toxicityChartInstance = null;
+  }
+
+  if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
+    handleEmptyChart(ctx, 'No data available');
+    return;
+  }
+
+  handleNonEmptyChart(ctx);
+
+  toxicityChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: chartData.map(d => d.material),
@@ -120,7 +189,19 @@ function renderCellLineChart(chartData) {
   const ctx = document.getElementById('cellLineChart');
   if (!ctx) return;
 
-  new Chart(ctx, {
+  if (cellLineChartInstance) {
+    cellLineChartInstance.destroy();
+    cellLineChartInstance = null;
+  }
+
+  if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
+    handleEmptyChart(ctx, 'No data available');
+    return;
+  }
+
+  handleNonEmptyChart(ctx);
+
+  cellLineChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: chartData.map(d => d.cell_line),
