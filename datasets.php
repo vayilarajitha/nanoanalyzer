@@ -11,6 +11,12 @@ if ($pdo instanceof PDO) {
         $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
         $stmt->execute([$user_id]);
         $datasets = $stmt->fetchAll() ?: [];
+
+        if (empty($datasets)) {
+            $stmt_sim = $pdo->prepare("SELECT id, user_id, analysis_name as dataset_name, analysis_name as name, core_material, core_material as material, nanoparticle_type, nanoparticle_type as shape, size_nm, size_nm as nanoparticle_size, surface_charge_mv, surface_charge_mv as charge, cell_type, predicted_uptake_percent as uptake_efficiency_percent, predicted_toxicity_index as toxicity_score, recommendations as notes, created_at FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC");
+            $stmt_sim->execute([$user_id]);
+            $datasets = $stmt_sim->fetchAll() ?: [];
+        }
     } catch (Throwable $e) {
         $datasets = [];
     }

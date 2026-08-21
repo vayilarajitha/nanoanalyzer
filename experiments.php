@@ -11,6 +11,12 @@ if ($pdo instanceof PDO) {
         $stmt = $pdo->prepare("SELECT e.*, COALESCE(u.name, u.full_name) as full_name FROM experiments e LEFT JOIN users u ON e.user_id = u.id WHERE e.user_id = ? ORDER BY e.created_at DESC");
         $stmt->execute([$user_id]);
         $experiments = $stmt->fetchAll() ?: [];
+
+        if (empty($experiments)) {
+            $stmt_sim = $pdo->prepare("SELECT id, user_id, analysis_name as title, recommendations as description, nanoparticle_type, core_material, size_nm as particle_size_nm, cell_type as target_cell_line, 'Completed' as status, created_at FROM analysis_results WHERE user_id = ? ORDER BY created_at DESC");
+            $stmt_sim->execute([$user_id]);
+            $experiments = $stmt_sim->fetchAll() ?: [];
+        }
     } catch (Throwable $e) {
         $experiments = [];
     }

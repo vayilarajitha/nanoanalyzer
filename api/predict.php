@@ -142,6 +142,14 @@ try {
         // Ignore if schema difference
     }
 
+    // Insert into nanoparticle_datasets table
+    try {
+        $ds_stmt = $pdo->prepare("INSERT INTO nanoparticle_datasets (id, user_id, dataset_name, name, shape, nanoparticle_type, material, core_material, charge, surface_charge_mv, nanoparticle_size, size_nm, concentration, cell_type, uptake_efficiency_percent, toxicity_score, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $ds_stmt->execute([$uuid, $user_id, $analysis_name, $analysis_name, $shape, $shape, $material, $material, $charge, $charge, $nanoparticle_size, $nanoparticle_size, $concentration, $cell_type, $uptake_percentage, $predicted_toxicity, $optimization_recommendation]);
+    } catch (Throwable $ds_err) {
+        // Ignore if schema difference
+    }
+
     // Insert into history
     $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");
     $hist_stmt->execute([$user_id, "Ran nano uptake simulation: {$analysis_name} ({$nanoparticle_size}nm {$material})", $uuid]);
