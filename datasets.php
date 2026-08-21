@@ -11,12 +11,6 @@ if ($pdo instanceof PDO) {
         $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
         $stmt->execute([$user_id]);
         $datasets = $stmt->fetchAll() ?: [];
-        if (empty($datasets)) {
-            $stmt_all = $pdo->query("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id ORDER BY d.created_at DESC");
-            if ($stmt_all) {
-                $datasets = $stmt_all->fetchAll() ?: [];
-            }
-        }
     } catch (Throwable $e) {
         $datasets = [];
     }
@@ -158,25 +152,25 @@ include __DIR__ . '/includes/header.php';
           <div class="row g-3 mb-3">
             <div class="col-md-4">
               <label class="form-label parameter-label">Size (nm)</label>
-              <input type="number" step="0.1" name="size_nm" class="form-control parameter-value" value="45.0" required>
+              <input type="number" step="0.1" name="size_nm" class="form-control parameter-value" placeholder="45.0" required>
             </div>
             <div class="col-md-4">
               <label class="form-label parameter-label">Surface Charge (mV)</label>
-              <input type="number" step="0.1" name="surface_charge_mv" class="form-control parameter-value" value="20.0" required>
+              <input type="number" step="0.1" name="surface_charge_mv" class="form-control parameter-value" placeholder="20.0" required>
             </div>
             <div class="col-md-4">
               <label class="form-label parameter-label">Cell Line</label>
-              <input type="text" name="cell_type" class="form-control parameter-value" value="HeLa" required>
+              <input type="text" name="cell_type" class="form-control parameter-value" placeholder="e.g. HeLa" required>
             </div>
           </div>
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label parameter-label">Uptake Efficiency (%)</label>
-              <input type="number" step="0.1" name="uptake_efficiency_percent" class="form-control parameter-value" value="85.0" required>
+              <input type="number" step="0.1" name="uptake_efficiency_percent" class="form-control parameter-value" placeholder="85.0" required>
             </div>
             <div class="col-md-6">
               <label class="form-label parameter-label">Toxicity Score (0-100)</label>
-              <input type="number" step="0.1" name="toxicity_score" class="form-control parameter-value" value="12.0" required>
+              <input type="number" step="0.1" name="toxicity_score" class="form-control parameter-value" placeholder="12.0" required>
             </div>
           </div>
           <div class="mb-3">

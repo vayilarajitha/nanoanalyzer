@@ -8,8 +8,8 @@ $user_id = get_current_user_id();
 $experiments = [];
 if ($pdo instanceof PDO) {
     try {
-        $stmt = $pdo->prepare("SELECT e.*, COALESCE(u.name, u.full_name) as full_name FROM experiments e LEFT JOIN users u ON e.user_id = u.id ORDER BY e.created_at DESC");
-        $stmt->execute();
+        $stmt = $pdo->prepare("SELECT e.*, COALESCE(u.name, u.full_name) as full_name FROM experiments e LEFT JOIN users u ON e.user_id = u.id WHERE e.user_id = ? ORDER BY e.created_at DESC");
+        $stmt->execute([$user_id]);
         $experiments = $stmt->fetchAll() ?: [];
     } catch (Throwable $e) {
         $experiments = [];
@@ -93,21 +93,21 @@ include __DIR__ . '/includes/header.php';
           </div>
           <div class="mb-3">
             <label class="form-label">Core Material</label>
-            <input type="text" name="core_material" class="form-control" value="Gold (Au)" required>
+            <input type="text" name="core_material" class="form-control" placeholder="e.g. Gold (Au)" required>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-6">
               <label class="form-label">Category</label>
-              <input type="text" name="nanoparticle_type" class="form-control" value="Polymeric" required>
+              <input type="text" name="nanoparticle_type" class="form-control" placeholder="e.g. Polymeric" required>
             </div>
             <div class="col-6">
               <label class="form-label">Size (nm)</label>
-              <input type="number" step="0.1" name="particle_size_nm" class="form-control" value="45.0" required>
+              <input type="number" step="0.1" name="particle_size_nm" class="form-control" placeholder="45.0" required>
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label">Target Cell Line</label>
-            <input type="text" name="target_cell_line" class="form-control" value="HeLa" required>
+            <input type="text" name="target_cell_line" class="form-control" placeholder="e.g. HeLa" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Protocol Description</label>

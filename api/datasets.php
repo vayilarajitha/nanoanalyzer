@@ -21,9 +21,16 @@ if ($method === 'GET') {
     // List datasets
     try {
         if (!($pdo instanceof PDO)) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
-        $stmt = $pdo->prepare("SELECT * FROM nanoparticle_datasets WHERE user_id = ? ORDER BY created_at DESC");
-        $stmt->execute([$user_id]);
-        $datasets = $stmt->fetchAll() ?: [];
+        $user_param = $_GET['user_id'] ?? $user_id;
+        if (!empty($user_param) && $user_param !== 'all') {
+            $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
+            $stmt->execute([$user_param]);
+            $datasets = $stmt->fetchAll() ?: [];
+        } else {
+            $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
+            $stmt->execute([$user_id]);
+            $datasets = $stmt->fetchAll() ?: [];
+        }
         echo json_encode(['status' => 'success', 'datasets' => $datasets]);
     } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);

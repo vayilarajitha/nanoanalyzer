@@ -42,8 +42,8 @@ try {
 
     if ($action === 'delete') {
         $id = trim($_POST['id'] ?? '');
-        $stmt = $pdo->prepare("DELETE FROM experiments WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare("DELETE FROM experiments WHERE id = ? AND user_id = ?");
+        $stmt->execute([$id, $user_id]);
 
         echo json_encode(['status' => 'success', 'message' => 'Experiment deleted successfully.']);
         exit;
@@ -52,8 +52,8 @@ try {
     if ($action === 'update_status') {
         $id = trim($_POST['id'] ?? '');
         $status = trim($_POST['status'] ?? 'Completed');
-        $stmt = $pdo->prepare("UPDATE experiments SET status = ? WHERE id = ?");
-        $stmt->execute([$status, $id]);
+        $stmt = $pdo->prepare("UPDATE experiments SET status = ? WHERE id = ? AND user_id = ?");
+        $stmt->execute([$status, $id, $user_id]);
 
         echo json_encode(['status' => 'success', 'message' => 'Experiment status updated to ' . $status]);
         exit;

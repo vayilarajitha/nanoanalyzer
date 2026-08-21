@@ -62,8 +62,8 @@ try {
 
     if ($action === 'delete') {
         $id = trim($_POST['id'] ?? '');
-        $stmt = $pdo->prepare("DELETE FROM nanoparticle_datasets WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare("DELETE FROM nanoparticle_datasets WHERE id = ? AND user_id = ?");
+        $stmt->execute([$id, $user_id]);
 
         echo json_encode(['status' => 'success', 'message' => 'Dataset entry deleted.']);
         exit;

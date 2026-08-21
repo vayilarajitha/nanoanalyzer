@@ -155,13 +155,14 @@ include __DIR__ . '/includes/header.php';
             <form method="POST" action="predict.php">
               <div class="mb-4">
                 <label class="form-label">Simulation Run Title</label>
-                <input type="text" name="analysis_name" class="form-control" placeholder="e.g. Gold Nanoparticle HeLa Uptake Study" value="Gold Nanoparticle HeLa Uptake Study" required>
+                <input type="text" name="analysis_name" class="form-control" placeholder="e.g. Nanoparticle Cellular Uptake Study" required>
               </div>
 
               <div class="row g-3 mb-3">
                 <div class="col-md-6">
                   <label class="form-label">Nanoparticle Core Material</label>
                   <select name="core_material" class="form-select" required>
+                    <option value="" disabled selected>Select Core Material...</option>
                     <option value="Gold (Au)">Gold (Au)</option>
                     <option value="Liposome">Liposome</option>
                     <option value="PLGA Polymer">PLGA Polymer</option>
@@ -174,6 +175,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="col-md-6">
                   <label class="form-label">Nanoparticle Type Category</label>
                   <select name="nanoparticle_type" class="form-select" required>
+                    <option value="" disabled selected>Select Category...</option>
                     <option value="Polymeric">Polymeric</option>
                     <option value="Lipid-based">Lipid-based</option>
                     <option value="Inorganic">Inorganic</option>
@@ -186,12 +188,12 @@ include __DIR__ . '/includes/header.php';
               <div class="row g-3 mb-3">
                 <div class="col-md-6">
                   <label class="form-label">Particle Size (Hydrodynamic Diameter nm)</label>
-                  <input type="number" step="0.1" name="size_nm" class="form-control" placeholder="45.0" value="45.0" min="5" max="300" required>
+                  <input type="number" step="0.1" name="size_nm" class="form-control" placeholder="e.g. 45.0" min="5" max="300" required>
                   <small class="text-muted">Thermodynamic endocytic optimal: ~40 – 50 nm</small>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Surface Charge / Zeta Potential (mV)</label>
-                  <input type="number" step="0.1" name="surface_charge_mv" class="form-control" placeholder="25.0" value="25.0" min="-100" max="100" required>
+                  <input type="number" step="0.1" name="surface_charge_mv" class="form-control" placeholder="e.g. 25.0" min="-100" max="100" required>
                   <small class="text-muted">Positive charges (+15 to +35 mV) enhance cell binding</small>
                 </div>
               </div>
@@ -200,6 +202,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="col-md-4">
                   <label class="form-label">Target Cell Line</label>
                   <select name="cell_type" class="form-select" required>
+                    <option value="" disabled selected>Select Cell Line...</option>
                     <option value="HeLa">HeLa (Cervical Cancer)</option>
                     <option value="Cancer MDA-MB-231">MDA-MB-231 (Breast Cancer)</option>
                     <option value="Macrophage">Macrophage (Immune Cell)</option>
@@ -209,11 +212,11 @@ include __DIR__ . '/includes/header.php';
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">Exposure / Incubation Time (h)</label>
-                  <input type="number" step="0.5" name="exposure_time_h" class="form-control" value="6.0" min="0.5" max="72" required>
+                  <input type="number" step="0.5" name="exposure_time_h" class="form-control" placeholder="e.g. 6.0" min="0.5" max="72" required>
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">Dose Concentration (µg/mL)</label>
-                  <input type="number" step="1" name="concentration_ug_ml" class="form-control" value="50.0" min="1" max="1000" required>
+                  <input type="number" step="1" name="concentration_ug_ml" class="form-control" placeholder="e.g. 50.0" min="1" max="1000" required>
                 </div>
               </div>
 
