@@ -3,29 +3,29 @@ require_once __DIR__ . '/config/db.php';
 $page_title = 'NanoAnalyzer | Nanoparticle Uptake & Drug Delivery Simulation Platform';
 include __DIR__ . '/includes/header.php';
 
-// Fetch quick live stats from database with default fallbacks
-$dataset_count = 5;
-$prediction_count = 12;
-$experiment_count = 4;
+// Fetch live platform stats from database
+$dataset_count = 0;
+$prediction_count = 0;
+$experiment_count = 0;
 
 if ($pdo instanceof PDO) {
     try {
-        $ds_res = $pdo->query("SELECT COUNT(*) FROM datasets");
+        $ds_res = $pdo->query("SELECT COUNT(*) FROM nanoparticle_datasets");
         if ($ds_res) {
-            $dataset_count = $ds_res->fetchColumn() ?: 5;
+            $dataset_count = (int)($ds_res->fetchColumn() ?: 0);
         }
-        $pr_res = $pdo->query("SELECT COUNT(*) FROM predictions");
+        $pr_res = $pdo->query("SELECT COUNT(*) FROM analysis_results");
         if ($pr_res) {
-            $prediction_count = $pr_res->fetchColumn() ?: 12;
+            $prediction_count = (int)($pr_res->fetchColumn() ?: 0);
         }
         $ex_res = $pdo->query("SELECT COUNT(*) FROM experiments");
         if ($ex_res) {
-            $experiment_count = $ex_res->fetchColumn() ?: 4;
+            $experiment_count = (int)($ex_res->fetchColumn() ?: 0);
         }
     } catch (Throwable $e) {
-        $dataset_count = 5;
-        $prediction_count = 12;
-        $experiment_count = 4;
+        $dataset_count = 0;
+        $prediction_count = 0;
+        $experiment_count = 0;
     }
 }
 ?>
