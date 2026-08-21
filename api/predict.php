@@ -122,14 +122,25 @@ try {
         mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
     );
 
+    $hash_string = strtolower("{$material}|{$shape}|{$nanoparticle_size}|{$charge}|{$cell_type}|{$exposure_time}|{$concentration}");
+    $deterministic_hash = md5($hash_string);
+
     // Insert into analysis_results
     $stmt = $pdo->prepare("INSERT INTO analysis_results 
-        (id, user_id, dataset_id, analysis_name, nanoparticle_type, core_material, size_nm, shape, surface_charge_mv, zeta_potential, cell_type, exposure_time_h, concentration_ug_ml, uptake_percentage, predicted_uptake_percent, diffusion_score, drug_release_rate, predicted_toxicity_index, delivery_efficiency_score, confidence_score, primary_mechanism, prediction_result, recommendations) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (id, user_id, dataset_id, analysis_name, nanoparticle_type, core_material, size_nm, shape, surface_charge_mv, zeta_potential, cell_type, exposure_time_h, concentration_ug_ml, uptake_percentage, predicted_uptake_percent, diffusion_score, drug_release_rate, predicted_toxicity_index, delivery_efficiency_score, confidence_score, primary_mechanism, prediction_result, recommendations, deterministic_hash) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     $stmt->execute([
-        $uuid, $user_id, $dataset_id, $analysis_name, $shape, $material, $nanoparticle_size, $shape, $charge, $charge, $cell_type, $exposure_time, $concentration, $uptake_percentage, $uptake_percentage, $diffusion_score, $drug_release_rate, $predicted_toxicity, $delivery_score, 96.5, $mechanism, $prediction_result_json, $optimization_recommendation
+        $uuid, $user_id, $dataset_id, $analysis_name, $shape, $material, $nanoparticle_size, $shape, $charge, $charge, $cell_type, $exposure_time, $concentration, $uptake_percentage, $uptake_percentage, $diffusion_score, $drug_release_rate, $predicted_toxicity, $delivery_score, 96.5, $mechanism, $prediction_result_json, $optimization_recommendation, $deterministic_hash
     ]);
+
+    // Insert into experiments table
+    try {
+        $exp_stmt = $pdo->prepare("INSERT INTO experiments (id, user_id, title, description, nanoparticle_type, core_material, particle_size_nm, target_cell_line, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $exp_stmt->execute([$uuid, $user_id, $analysis_name, "Simulation Protocol: {$optimization_recommendation}", $shape, $material, $nanoparticle_size, $cell_type, 'Completed']);
+    } catch (Throwable $ex_err) {
+        // Ignore if schema difference
+    }
 
     // Insert into history
     $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");

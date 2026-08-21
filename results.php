@@ -165,7 +165,14 @@ include __DIR__ . '/includes/header.php';
 
               <div class="glass-card">
                 <div class="result-label small uppercase font-bold mb-1">Deterministic Verification Signature</div>
-                <code class="text-cyan font-mono small"><?php echo $row['deterministic_hash']; ?></code>
+                <code class="text-cyan font-mono small"><?php 
+                  $hash = $row['deterministic_hash'] ?? '';
+                  if (empty($hash)) {
+                    $hash_str = strtolower(($row['core_material']??'').'|'.($row['nanoparticle_type']??'').'|'.($row['size_nm']??'').'|'.($row['surface_charge_mv']??'').'|'.($row['cell_type']??'').'|'.($row['exposure_time_h']??'').'|'.($row['concentration_ug_ml']??''));
+                    $hash = md5($hash_str);
+                  }
+                  echo htmlspecialchars($hash); 
+                ?></code>
               </div>
             </div>
           </div>
