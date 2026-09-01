@@ -157,6 +157,7 @@ switch ($action) {
         }
         break;
 
+    case 'forgot_password':
     case 'reset_password':
         $email = trim(strtolower($input['email'] ?? ''));
         if (empty($email)) {
@@ -168,12 +169,90 @@ switch ($action) {
             if (!($pdo instanceof PDO)) {
                 throw new Exception("Database connection unavailable.");
             }
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE email ILIKE ?");
+            $stmt = $pdo->prepare("SELECT id, email FROM users WHERE email ILIKE ? LIMIT 1");
             $stmt->execute([$email]);
-            if ($stmt->fetch()) {
-                echo json_encode(['status' => 'success', 'message' => 'Verification code generated successfully.']);
+            $user = $stmt->fetch();
+            if ($user) {
+                $otp = sprintf('%06d', mt_rand(100000, 999999));
+                $expires = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+                $stmt_otp = $pdo->prepare("INSERT INTO otp_codes (user_id, email, code, otp_code, expires_at, used) VALUES (?, ?, ?, ?, ?, false)");
+                $stmt_otp->execute([$user['id'], $user['email'], strval($otp), strval($otp), $expires]);
+
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'Verification code generated successfully.',
+                    'otp_code' => $otp,
+                    'email' => $user['email']
+                ]);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'No registered account found with that email address.']);
+            }
+        } catch (Throwable $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        break;
+
+    case 'verify_otp':
+        $email = trim(strtolower($input['email'] ?? ''));
+        $otp_code = trim($input['otp_code'] ?? $input['code'] ?? '');
+
+        if (empty($email) || empty($otp_code)) {
+            echo json_encode(['status' => 'error', 'message' => 'Email and OTP code are required.']);
+            exit;
+        }
+
+        try {
+            if (!($pdo instanceof PDO)) throw new Exception("Database connection unavailable.");
+
+            $stmt = $pdo->prepare("SELECT id FROM otp_codes WHERE email ILIKE ? AND (code = ? OR otp_code = ?) AND (used = false OR used IS NULL) AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1");
+            $stmt->execute([$email, $otp_code, $otp_code]);
+            $row = $stmt->fetch();
+
+            if ($row) {
+                echo json_encode(['status' => 'success', 'message' => 'Verification code verified successfully.']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid or expired verification code.']);
+            }
+        } catch (Throwable $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        break;
+
+    case 'confirm_reset_password':
+    case 'update_password':
+        $email = trim(strtolower($input['email'] ?? ''));
+        $otp_code = trim($input['otp_code'] ?? $input['code'] ?? '');
+        $new_password = $input['new_password'] ?? $input['password'] ?? '';
+
+        if (empty($email) || empty($otp_code) || empty($new_password)) {
+            echo json_encode(['status' => 'error', 'message' => 'Email, OTP code, and new password are required.']);
+            exit;
+        }
+
+        if (strlen($new_password) < 6) {
+            echo json_encode(['status' => 'error', 'message' => 'Password must be at least 6 characters.']);
+            exit;
+        }
+
+        try {
+            if (!($pdo instanceof PDO)) throw new Exception("Database connection unavailable.");
+
+            $stmt = $pdo->prepare("SELECT id FROM otp_codes WHERE email ILIKE ? AND (code = ? OR otp_code = ?) AND (used = false OR used IS NULL) AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1");
+            $stmt->execute([$email, $otp_code, $otp_code]);
+            $row = $stmt->fetch();
+
+            if ($row) {
+                $new_hash = password_hash($new_password, PASSWORD_BCRYPT);
+                $update_user = $pdo->prepare("UPDATE users SET password_hash = ? WHERE email ILIKE ?");
+                $update_user->execute([$new_hash, $email]);
+
+                $update_otp = $pdo->prepare("UPDATE otp_codes SET used = true WHERE email ILIKE ? AND (code = ? OR otp_code = ?)");
+                $update_otp->execute([$email, $otp_code, $otp_code]);
+
+                echo json_encode(['status' => 'success', 'message' => 'Password updated successfully. You can now log in.']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid or expired verification code.']);
             }
         } catch (Throwable $e) {
             echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);

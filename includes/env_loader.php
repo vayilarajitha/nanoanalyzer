@@ -25,6 +25,7 @@ if (!function_exists('clean_env_val')) {
         // Detect and filter out unconfigured dummy placeholders
         $placeholders = [
             'xyz-your-supabase-project',
+            'sjcngccbqwdpdliffsgz',
             'your_supabase_db_password',
             'your_supabase_anon_key',
             'your_supabase_service_role_key',
@@ -35,6 +36,10 @@ if (!function_exists('clean_env_val')) {
             'YOUR_SUPABASE_ANON_KEY',
             'YOUR_SUPABASE_SERVICE_ROLE_KEY',
             'YOUR_SUPABASE_DB_PASSWORD',
+            'YOUR_SUPABASE_URL',
+            'YOUR_SUPABASE_DB_HOST',
+            'YOUR_DB_PASSWORD',
+            'YOUR_POOLER_HOST',
             'YOUR-PASSWORD',
             'your-password',
             'YOUR_PASSWORD',

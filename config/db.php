@@ -139,23 +139,20 @@ if (empty($db_pass)) {
     $db_pass = env('SUPABASE_DB_PASSWORD') ?: env('SUPABASE_DB_PASS') ?: env('DB_PASSWORD') ?: env('DB_PASS') ?: env('POSTGRES_PASSWORD') ?: env('PGPASSWORD') ?: env('SUPABASE_PASSWORD') ?: '';
 }
 
-// 3. Extract Supabase Project Reference (e.g. 'sjcngccbqwdpdliffsgz')
+// 3. Extract Supabase Project Reference cleanly (e.g. from user 'postgres.ref', host 'db.ref.supabase.co', or URL)
 $project_ref = '';
-$supabase_url = env('SUPABASE_URL', '');
-if (!empty($supabase_url) && preg_match('#https?://([a-z0-9_-]+)\.supabase\.co#i', $supabase_url, $m_url)) {
-    $project_ref = $m_url[1];
+if (!empty($db_user) && preg_match('#^postgres\.([a-z0-9_-]+)$#i', $db_user, $m_usr)) {
+    $project_ref = clean_env_val($m_usr[1]);
 } elseif (!empty($db_host) && preg_match('#db\.([a-z0-9_-]+)\.supabase\.co#i', $db_host, $m_host)) {
-    $project_ref = $m_host[1];
-} elseif (!empty($db_user) && preg_match('#^postgres\.([a-z0-9_-]+)$#i', $db_user, $m_usr)) {
-    $project_ref = $m_usr[1];
+    $project_ref = clean_env_val($m_host[1]);
+} else {
+    $supabase_url = env('SUPABASE_URL', '');
+    if (!empty($supabase_url) && preg_match('#https?://([a-z0-9_-]+)\.supabase\.co#i', $supabase_url, $m_url)) {
+        $project_ref = clean_env_val($m_url[1]);
+    }
 }
 
 // 4. Intelligent defaults for host, user, and port
-if (empty($db_host) && !empty($project_ref)) {
-    // Prefer Supabase IPv4-compatible pooler host for cloud deployments (Render)
-    $db_host = 'aws-0-us-east-1.pooler.supabase.com';
-}
-
 $is_pooler = (!empty($db_host) && strpos($db_host, 'pooler.supabase.com') !== false);
 
 if (empty($db_user)) {
@@ -181,7 +178,7 @@ if (empty($db_name)) {
 $candidates = [];
 
 if (!empty($db_host) && !empty($db_user) && !empty($db_pass)) {
-    // Candidate 1: Direct configured host/port with sslmode=require
+    // Candidate 1: Direct configured host/port
     $candidates[] = [
         'host' => $db_host,
         'port' => $db_port,
@@ -192,7 +189,7 @@ if (!empty($db_host) && !empty($db_user) && !empty($db_pass)) {
         'desc' => "Configured ({$db_host}:{$db_port})"
     ];
 
-    // Candidate 2: If pooler on 5432 (session mode), try 6543 (transaction mode - best for cloud apps)
+    // Candidate 2: If pooler on 5432 (session mode), try 6543 (transaction mode)
     if ($is_pooler && $db_port === '5432') {
         $candidates[] = [
             'host' => $db_host,
@@ -218,30 +215,7 @@ if (!empty($db_host) && !empty($db_user) && !empty($db_pass)) {
         ];
     }
 
-    // Candidate 4: If host was direct (db.ref.supabase.co), try pooler host aws-0-us-east-1.pooler.supabase.com (IPv4-compatible)
-    if (!$is_pooler && !empty($project_ref)) {
-        $pooler_user = (strpos($db_user, '.') !== false) ? $db_user : ('postgres.' . $project_ref);
-        $candidates[] = [
-            'host' => 'aws-0-us-east-1.pooler.supabase.com',
-            'port' => '6543',
-            'user' => $pooler_user,
-            'pass' => $db_pass,
-            'name' => $db_name,
-            'ssl'  => 'require',
-            'desc' => "Supabase IPv4 Pooler Fallback (aws-0-us-east-1.pooler.supabase.com:6543)"
-        ];
-        $candidates[] = [
-            'host' => 'aws-0-us-east-1.pooler.supabase.com',
-            'port' => '5432',
-            'user' => $pooler_user,
-            'pass' => $db_pass,
-            'name' => $db_name,
-            'ssl'  => 'require',
-            'desc' => "Supabase IPv4 Pooler Session Fallback (aws-0-us-east-1.pooler.supabase.com:5432)"
-        ];
-    }
-
-    // Candidate 5: If pooler host failed and direct host is known, try direct connection
+    // Candidate 4: If project_ref is valid and host was pooler, try direct host db.[ref].supabase.co:5432
     if ($is_pooler && !empty($project_ref)) {
         $candidates[] = [
             'host' => "db.{$project_ref}.supabase.co",
@@ -252,6 +226,28 @@ if (!empty($db_host) && !empty($db_user) && !empty($db_pass)) {
             'ssl'  => 'require',
             'desc' => "Supabase Direct Connection Fallback (db.{$project_ref}.supabase.co:5432)"
         ];
+    }
+
+    // Candidate 5: If host was direct host (db.ref.supabase.co) or pooler in another region, try IPv4 Pooler hosts
+    if (!empty($project_ref)) {
+        $pooler_user = (strpos($db_user, '.') !== false) ? $db_user : ('postgres.' . $project_ref);
+        $pooler_hosts = [
+            'aws-0-ap-southeast-1.pooler.supabase.com',
+            'aws-0-us-east-1.pooler.supabase.com'
+        ];
+        foreach ($pooler_hosts as $phost) {
+            if ($phost !== $db_host) {
+                $candidates[] = [
+                    'host' => $phost,
+                    'port' => '6543',
+                    'user' => $pooler_user,
+                    'pass' => $db_pass,
+                    'name' => $db_name,
+                    'ssl'  => 'require',
+                    'desc' => "Supabase Pooler Region Fallback ({$phost}:6543)"
+                ];
+            }
+        }
     }
 
     // Candidate 6: Fallback with sslmode=prefer
@@ -266,11 +262,13 @@ if (!empty($db_host) && !empty($db_user) && !empty($db_pass)) {
     ];
 }
 
-$pdo = null;
+$pdo = $GLOBALS['pdo'] ?? $pdo ?? null;
 $GLOBALS['db_connection_error'] = null;
 $connection_errors = [];
 
-if (extension_loaded('pdo_pgsql') && !empty($candidates)) {
+if (isset($GLOBALS['pdo']) && ($GLOBALS['pdo'] instanceof PDO)) {
+    $pdo = $GLOBALS['pdo'];
+} else if (extension_loaded('pdo_pgsql') && !empty($candidates)) {
     $pdo_options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -306,7 +304,11 @@ if ($pdo === null) {
     }
 }
 
-$GLOBALS['pdo'] = $pdo;
+if ($pdo === null && isset($GLOBALS['pdo']) && ($GLOBALS['pdo'] instanceof PDO)) {
+    $pdo = $GLOBALS['pdo'];
+} else {
+    $GLOBALS['pdo'] = $pdo;
+}
 
 // Global Helper Functions
 if (!function_exists('get_db_connection')) {
@@ -323,11 +325,37 @@ if (!function_exists('get_db_error')) {
 }
 
 function get_current_user_id() {
-    return $_SESSION['user_id'] ?? 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+    if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
+        return $_SESSION['user_id'];
+    }
+    if (!empty($_SERVER['HTTP_X_USER_ID'])) {
+        return trim($_SERVER['HTTP_X_USER_ID']);
+    }
+    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    if (preg_match('/Bearer\s+(.*)$/i', $auth, $matches)) {
+        $token = trim($matches[1]);
+        if (!empty($token)) {
+            return $token;
+        }
+    }
+    if (!empty($_REQUEST['user_id'])) {
+        return trim($_REQUEST['user_id']);
+    }
+    return 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 }
 
 function is_logged_in() {
-    return isset($_SESSION['user_id']);
+    if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
+        return true;
+    }
+    if (!empty($_SERVER['HTTP_X_USER_ID'])) {
+        return true;
+    }
+    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    if (preg_match('/Bearer\s+(.*)$/i', $auth, $matches)) {
+        return !empty(trim($matches[1]));
+    }
+    return false;
 }
 
 function is_admin() {
