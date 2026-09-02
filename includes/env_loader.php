@@ -25,7 +25,6 @@ if (!function_exists('clean_env_val')) {
         // Detect and filter out unconfigured dummy placeholders
         $placeholders = [
             'xyz-your-supabase-project',
-            'sjcngccbqwdpdliffsgz',
             'your_supabase_db_password',
             'your_supabase_anon_key',
             'your_supabase_service_role_key',

@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS public.nanoparticle_datasets (
 );
 
 -- Backwards compatibility view for 'datasets'
+DROP VIEW IF EXISTS public.datasets CASCADE;
 CREATE OR REPLACE VIEW public.datasets AS
 SELECT 
     id, user_id, 
@@ -113,6 +114,7 @@ CREATE TABLE IF NOT EXISTS public.analysis_results (
 );
 
 -- Backwards compatibility view for 'predictions'
+DROP VIEW IF EXISTS public.predictions CASCADE;
 CREATE OR REPLACE VIEW public.predictions AS
 SELECT 
     id, user_id, dataset_id, analysis_name, nanoparticle_type, core_material, size_nm, shape,

@@ -277,7 +277,7 @@ if (isset($GLOBALS['pdo']) && ($GLOBALS['pdo'] instanceof PDO)) {
 
     foreach ($candidates as $cand) {
         try {
-            $dsn = "pgsql:host={$cand['host']};port={$cand['port']};dbname={$cand['name']};sslmode={$cand['ssl']};connect_timeout=8";
+            $dsn = "pgsql:host={$cand['host']};port={$cand['port']};dbname={$cand['name']};sslmode={$cand['ssl']};connect_timeout=3";
             $conn = new PDO($dsn, $cand['user'], $cand['pass'], $pdo_options);
             
             // Validate connection with quick ping & synchronize session timezone
@@ -292,9 +292,45 @@ if (isset($GLOBALS['pdo']) && ($GLOBALS['pdo'] instanceof PDO)) {
     }
 }
 
+// Fallback to local SQLite database if PostgreSQL connection was not established
+if ($pdo === null && extension_loaded('pdo_sqlite')) {
+    $sqlite_file = __DIR__ . '/../database/nanoanalyzer.sqlite';
+    if (file_exists($sqlite_file)) {
+        try {
+            if (!class_exists('SQLiteCompatPDO')) {
+                class SQLiteCompatPDO extends PDO {
+                    public function prepare($query, $options = []) {
+                        $query = preg_replace('/\bILIKE\b/i', 'LIKE', $query);
+                        return parent::prepare($query, $options ?: []);
+                    }
+                    public function query($query, ...$args) {
+                        $query = preg_replace('/\bILIKE\b/i', 'LIKE', $query);
+                        return parent::query(...array_merge([$query], $args));
+                    }
+                    public function exec($statement) {
+                        $statement = preg_replace('/\bILIKE\b/i', 'LIKE', $statement);
+                        return parent::exec($statement);
+                    }
+                }
+            }
+            $sqlite_pdo = new SQLiteCompatPDO("sqlite:{$sqlite_file}", null, null, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+            $sqlite_pdo->sqliteCreateFunction('NOW', function() {
+                return date('Y-m-d H:i:s');
+            }, 0);
+            $pdo = $sqlite_pdo;
+            $GLOBALS['db_connection_active'] = "Local SQLite ({$sqlite_file})";
+        } catch (Throwable $sqle) {
+            $connection_errors[] = "SQLite fallback failed: " . $sqle->getMessage();
+        }
+    }
+}
+
 if ($pdo === null) {
-    if (!extension_loaded('pdo_pgsql')) {
-        $GLOBALS['db_connection_error'] = "PHP pdo_pgsql extension is not enabled in PHP environment.";
+    if (!extension_loaded('pdo_pgsql') && !extension_loaded('pdo_sqlite')) {
+        $GLOBALS['db_connection_error'] = "PHP pdo_pgsql and pdo_sqlite extensions are not enabled in PHP environment.";
     } elseif (empty($db_pass)) {
         $GLOBALS['db_connection_error'] = "Database password is missing. Please set DATABASE_URL or SUPABASE_DB_PASSWORD in Render Environment Variables.";
     } elseif (empty($db_host)) {

@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS public.nanoparticle_datasets (
 );
 
 -- Backwards compatibility view for 'datasets'
+DROP VIEW IF EXISTS public.datasets CASCADE;
 CREATE OR REPLACE VIEW public.datasets AS
 SELECT 
     id, user_id, 
@@ -113,6 +114,7 @@ CREATE TABLE IF NOT EXISTS public.analysis_results (
 );
 
 -- Backwards compatibility view for 'predictions'
+DROP VIEW IF EXISTS public.predictions CASCADE;
 CREATE OR REPLACE VIEW public.predictions AS
 SELECT 
     id, user_id, dataset_id, analysis_name, nanoparticle_type, core_material, size_nm, shape,
@@ -215,6 +217,16 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.otp_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chatbot_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public all on users" ON public.users;
+DROP POLICY IF EXISTS "Allow public all on nanoparticle_datasets" ON public.nanoparticle_datasets;
+DROP POLICY IF EXISTS "Allow public all on analysis_results" ON public.analysis_results;
+DROP POLICY IF EXISTS "Allow public all on experiments" ON public.experiments;
+DROP POLICY IF EXISTS "Allow public all on history" ON public.history;
+DROP POLICY IF EXISTS "Allow public all on notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Allow public all on otp_codes" ON public.otp_codes;
+DROP POLICY IF EXISTS "Allow public all on chatbot_logs" ON public.chatbot_logs;
+DROP POLICY IF EXISTS "Allow public all on system_logs" ON public.system_logs;
 
 CREATE POLICY "Allow public all on users" ON public.users FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public all on nanoparticle_datasets" ON public.nanoparticle_datasets FOR ALL USING (true) WITH CHECK (true);
