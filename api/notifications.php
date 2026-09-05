@@ -15,6 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/db.php';
 
 $user_id = get_current_user_id();
+if (empty($user_id)) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.', 'notifications' => []]);
+    exit;
+}
 
 try {
     if (!($pdo instanceof PDO)) {

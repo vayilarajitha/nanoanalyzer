@@ -261,7 +261,7 @@ export default function DatasetScreen({ navigation }) {
         ) : (
           <EmptyState
             icon="server-outline"
-            title="No Datasets Uploaded"
+            title="No datasets found"
             message="No experimental nanoparticle datasets found in database."
             buttonTitle="Upload CSV Dataset"
             onButtonPress={() => setShowUploadForm(true)}

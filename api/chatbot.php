@@ -4,7 +4,7 @@
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-User-ID');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -14,9 +14,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../config/db.php';
 
+$user_id = get_current_user_id();
+if (empty($user_id)) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    try {
+        if (!($pdo instanceof PDO)) {
+            throw new Exception("Database connection unavailable.");
+        }
+        $stmt = $pdo->prepare("SELECT id, user_message, bot_response, intent, created_at FROM chatbot_logs WHERE user_id = ? ORDER BY created_at ASC LIMIT 100");
+        $stmt->execute([$user_id]);
+        $history = $stmt->fetchAll() ?: [];
+        foreach ($history as &$h) {
+            $h['created_at_formatted'] = format_app_datetime($h['created_at']);
+        }
+        unset($h);
+        echo json_encode(['status' => 'success', 'history' => $history]);
+    } catch (Throwable $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 $user_msg = trim($input['message'] ?? '');
-$user_id = get_current_user_id();
 $session_id = session_id() ?: ('sess_' . uniqid());
 
 if (empty($user_msg)) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 import Header from '../components/Header';
@@ -26,6 +26,32 @@ export default function HistoryScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
+  };
+
+  const handleDeleteItem = (id, name) => {
+    Alert.alert(
+      'Delete Analysis Record',
+      `Are you sure you want to remove "${name}" from your history?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const res = await api.deleteHistory(id);
+              if (res.status === 'success') {
+                setHistoryItems((prev) => prev.filter((item) => item.id !== id));
+              } else {
+                Alert.alert('Delete Failed', res.message || 'Could not delete item.');
+              }
+            } catch (e) {
+              Alert.alert('Error', 'Unable to delete history record.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   useEffect(() => {
@@ -78,8 +104,17 @@ export default function HistoryScreen({ navigation }) {
               activeOpacity={0.8}
             >
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>{item.analysis_name || 'Uptake Simulation Run'}</Text>
-                <Text style={styles.dateText}>{item.created_at_formatted || 'Recent'}</Text>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <Text style={styles.cardTitle}>{item.analysis_name || 'Uptake Simulation Run'}</Text>
+                  <Text style={styles.dateText}>{item.created_at_formatted || 'Recent'}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleDeleteItem(item.id, item.analysis_name || 'Simulation')}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={{ padding: 4 }}
+                >
+                  <Ionicons name="trash-outline" size={18} color={COLORS.rose} />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.detailsRow}>
@@ -110,7 +145,7 @@ export default function HistoryScreen({ navigation }) {
           ))
         ) : (
           <EmptyState
-            title="No Simulation History"
+            title="No history available"
             message={searchQuery ? 'No simulation matches your search criteria.' : 'No previous analysis records found.'}
             buttonTitle="Run New Simulation"
             onButtonPress={() => navigation.navigate('New Analysis')}

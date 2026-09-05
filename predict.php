@@ -119,22 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $uuid, $user_id, $analysis_name, $np_type, $core_material, $size_nm, $np_type, $charge_mv, $charge_mv, $cell_type, $exposure_time, $dose_ug_ml, $predicted_uptake, $predicted_uptake, $diffusion_score, $drug_release_rate, $predicted_toxicity, $delivery_score, $confidence_score, $mechanism, $pred_json, $recommendation, $deterministic_hash
         ]);
 
-        // Insert into experiments table
-        try {
-            $exp_stmt = $pdo->prepare("INSERT INTO experiments (id, user_id, title, description, nanoparticle_type, core_material, particle_size_nm, target_cell_line, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $exp_stmt->execute([$uuid, $user_id, $analysis_name, "Simulation Protocol: {$recommendation}", $np_type, $core_material, $size_nm, $cell_type, 'Completed']);
-        } catch (Throwable $ex_err) {
-            // Ignore if already logged or schema difference
-        }
-
-        // Insert into nanoparticle_datasets table
-        try {
-            $ds_stmt = $pdo->prepare("INSERT INTO nanoparticle_datasets (id, user_id, dataset_name, name, shape, nanoparticle_type, material, core_material, charge, surface_charge_mv, nanoparticle_size, size_nm, concentration, cell_type, uptake_efficiency_percent, toxicity_score, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $ds_stmt->execute([$uuid, $user_id, $analysis_name, $analysis_name, $np_type, $np_type, $core_material, $core_material, $charge_mv, $charge_mv, $size_nm, $size_nm, $dose_ug_ml, $cell_type, $predicted_uptake, $predicted_toxicity, $recommendation]);
-        } catch (Throwable $ds_err) {
-            // Ignore if already logged or schema difference
-        }
-
         // Insert into history table
         $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");
         $hist_stmt->execute([$user_id, "Ran nano uptake simulation: {$analysis_name} ({$size_nm}nm {$core_material})", $uuid]);

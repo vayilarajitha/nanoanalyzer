@@ -11,6 +11,16 @@ try {
     }
 
     $user_id = get_current_user_id();
+    if (empty($user_id)) {
+        echo json_encode([
+            'status' => 'success',
+            'uptake_vs_size' => [],
+            'material_distribution' => [],
+            'toxicity_by_material' => [],
+            'cell_line_uptake' => []
+        ]);
+        exit;
+    }
 
     // 1. Particle Size vs Uptake Efficiency (Strictly from user's analysis_results / datasets)
     $stmt1 = $pdo->prepare("

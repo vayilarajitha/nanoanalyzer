@@ -5,6 +5,11 @@ header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $user_id = get_current_user_id();
+if (empty($user_id)) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+    exit;
+}
 
 try {
     if (!($pdo instanceof PDO)) {

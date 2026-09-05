@@ -22,11 +22,11 @@ if ($pdo instanceof PDO) {
         $stmt_pr->execute([$user_id]);
         $total_predictions = (int)($stmt_pr->fetchColumn() ?: 0);
 
-        $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM history WHERE user_id = ?");
+        $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM experiments WHERE user_id = ?");
         $stmt_ex->execute([$user_id]);
         $total_experiments = (int)($stmt_ex->fetchColumn() ?: 0);
 
-        $total_datasets = $ds_count + $total_predictions;
+        $total_datasets = $ds_count;
 
         $stmt_up = $pdo->prepare("SELECT ROUND(AVG(COALESCE(predicted_uptake_percent, uptake_percentage)), 1) FROM analysis_results WHERE user_id = ?");
         $stmt_up->execute([$user_id]);

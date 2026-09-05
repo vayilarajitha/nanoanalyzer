@@ -4,3 +4,13 @@
 vendor/
 node_modules/
 *.log
+*.sqlite
+*.sqlite3
+*.db
+*.jks
+.idea/
+scratch/
+screenshots/
+e2e_test_runner.py
+E2E_Test_Report_*.xlsx
+

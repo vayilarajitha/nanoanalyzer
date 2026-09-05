@@ -15,13 +15,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/db.php';
 
 $user_id = get_current_user_id();
+if (empty($user_id)) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+    exit;
+}
 
 try {
     if (!($pdo instanceof PDO)) {
         throw new Exception("Database connection unavailable.");
     }
 
-    // 1. Stat cards counts
+    // 1. Stat cards counts strictly for current user
     $stmt_pr = $pdo->prepare("SELECT COUNT(*) FROM analysis_results WHERE user_id = ?");
     $stmt_pr->execute([$user_id]);
     $total_predictions = (int)($stmt_pr->fetchColumn() ?: 0);
@@ -30,7 +35,7 @@ try {
     $stmt_ds->execute([$user_id]);
     $total_datasets = (int)($stmt_ds->fetchColumn() ?: 0);
 
-    $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM history WHERE user_id = ?");
+    $stmt_ex = $pdo->prepare("SELECT COUNT(*) FROM experiments WHERE user_id = ?");
     $stmt_ex->execute([$user_id]);
     $total_experiments = (int)($stmt_ex->fetchColumn() ?: 0);
 

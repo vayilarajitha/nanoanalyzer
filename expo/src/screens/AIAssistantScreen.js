@@ -1,22 +1,58 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 import Header from '../components/Header';
 import api from '../services/api';
 
+const DEFAULT_GREETING = {
+  id: 'default-welcome',
+  sender: 'bot',
+  text: 'Hello! I am NanoBot, your biophysical AI assistant. Ask me anything about nanoparticle cellular uptake, size optimization, surface charge, or cytotoxicity!',
+  time: 'Just now',
+};
+
 export default function AIAssistantScreen({ navigation }) {
-  const [messages, setMessages] = useState([
-    {
-      id: '1',
-      sender: 'bot',
-      text: 'Hello! I am NanoBot, your biophysical AI assistant. Ask me anything about nanoparticle cellular uptake, size optimization, surface charge, or cytotoxicity!',
-      time: 'Just now',
-    },
-  ]);
+  const [messages, setMessages] = useState([DEFAULT_GREETING]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const flatListRef = useRef(null);
+
+  useEffect(() => {
+    loadUserChatHistory();
+  }, []);
+
+  const loadUserChatHistory = async () => {
+    try {
+      const res = await api.getAIChatHistory();
+      if (res.status === 'success' && Array.isArray(res.history) && res.history.length > 0) {
+        const loaded = [];
+        res.history.forEach((h, idx) => {
+          if (h.user_message) {
+            loaded.push({
+              id: `user-${h.id || idx}`,
+              sender: 'user',
+              text: h.user_message,
+              time: h.created_at_formatted || 'Previous',
+            });
+          }
+          if (h.bot_response) {
+            loaded.push({
+              id: `bot-${h.id || idx}`,
+              sender: 'bot',
+              text: h.bot_response,
+              time: h.created_at_formatted || 'Previous',
+            });
+          }
+        });
+        if (loaded.length > 0) {
+          setMessages(loaded);
+        }
+      }
+    } catch (e) {
+      // Keep default
+    }
+  };
 
   const handleSend = async () => {
     const text = inputText.trim();

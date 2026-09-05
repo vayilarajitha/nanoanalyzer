@@ -374,24 +374,12 @@ function get_current_user_id() {
             return $token;
         }
     }
-    if (!empty($_REQUEST['user_id'])) {
-        return trim($_REQUEST['user_id']);
-    }
-    return 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+    return null;
 }
 
 function is_logged_in() {
-    if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
-        return true;
-    }
-    if (!empty($_SERVER['HTTP_X_USER_ID'])) {
-        return true;
-    }
-    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
-    if (preg_match('/Bearer\s+(.*)$/i', $auth, $matches)) {
-        return !empty(trim($matches[1]));
-    }
-    return false;
+    $uid = get_current_user_id();
+    return !empty($uid);
 }
 
 function is_admin() {
@@ -400,6 +388,15 @@ function is_admin() {
 
 function require_login() {
     if (!is_logged_in()) {
+        $is_api = (strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') !== false) ||
+                  (strpos($_SERVER['REQUEST_URI'] ?? '', '/ajax/') !== false) ||
+                  (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+        if ($is_api) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+            exit;
+        }
         header('Location: login.php');
         exit;
     }

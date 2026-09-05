@@ -15,22 +15,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/db.php';
 
 $user_id = get_current_user_id();
+if (empty($user_id)) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+    exit;
+}
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    // List datasets
+    // List datasets strictly for current user
     try {
         if (!($pdo instanceof PDO)) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
-        $user_param = $_GET['user_id'] ?? $user_id;
-        if (!empty($user_param) && $user_param !== 'all') {
-            $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
-            $stmt->execute([$user_param]);
-            $datasets = $stmt->fetchAll() ?: [];
-        } else {
-            $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
-            $stmt->execute([$user_id]);
-            $datasets = $stmt->fetchAll() ?: [];
+        
+        $single_id = $_GET['id'] ?? null;
+        if (!empty($single_id)) {
+            $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.id = ? AND d.user_id = ?");
+            $stmt->execute([$single_id, $user_id]);
+            $dataset = $stmt->fetch();
+            if (!$dataset) {
+                http_response_code(404);
+                echo json_encode(['status' => 'error', 'message' => 'Dataset not found or access denied.']);
+                exit;
+            }
+            echo json_encode(['status' => 'success', 'dataset' => $dataset]);
+            exit;
         }
+
+        $stmt = $pdo->prepare("SELECT d.*, COALESCE(u.name, u.full_name) as full_name FROM nanoparticle_datasets d LEFT JOIN users u ON d.user_id = u.id WHERE d.user_id = ? ORDER BY d.created_at DESC");
+        $stmt->execute([$user_id]);
+        $datasets = $stmt->fetchAll() ?: [];
         echo json_encode(['status' => 'success', 'datasets' => $datasets]);
     } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
@@ -123,7 +136,12 @@ if ($method === 'DELETE') {
         if (!($pdo instanceof PDO)) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
         $stmt = $pdo->prepare("DELETE FROM nanoparticle_datasets WHERE id = ? AND user_id = ?");
         $stmt->execute([$id, $user_id]);
-        echo json_encode(['status' => 'success', 'message' => 'Dataset deleted successfully.']);
+        if ($stmt->rowCount() === 0) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'message' => 'Dataset not found or access denied.']);
+        } else {
+            echo json_encode(['status' => 'success', 'message' => 'Dataset deleted successfully.']);
+        }
     } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }

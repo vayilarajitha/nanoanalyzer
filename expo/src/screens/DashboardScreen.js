@@ -106,17 +106,17 @@ export default function DashboardScreen({ navigation }) {
 
         <TouchableOpacity
           style={[styles.actionBanner, { borderColor: COLORS.border, marginBottom: 20 }]}
-          onPress={() => navigation.navigate('Web App')}
+          onPress={() => navigation.navigate('DatasetManager')}
           activeOpacity={0.85}
         >
-          <View style={[styles.actionIconBox, { backgroundColor: COLORS.purple }]}>
-            <Ionicons name="globe" size={24} color={COLORS.white} />
+          <View style={[styles.actionIconBox, { backgroundColor: COLORS.cyanGlow, borderColor: COLORS.borderCyan, borderWidth: 1 }]}>
+            <Ionicons name="server-outline" size={22} color={COLORS.cyan} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.actionTitle}>Open Full Web Version</Text>
-            <Text style={styles.actionSubtitle}>Load complete PHP web app & live database</Text>
+            <Text style={styles.actionTitle}>Dataset Manager</Text>
+            <Text style={styles.actionSubtitle}>Upload and manage experimental CSV datasets</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.purple} />
+          <Ionicons name="chevron-forward" size={20} color={COLORS.cyan} />
         </TouchableOpacity>
 
         {/* 4 Stat Cards */}
@@ -157,7 +157,7 @@ export default function DashboardScreen({ navigation }) {
               color="emerald"
             />
             <StatCard
-              title="Lab Experiments"
+              title="Experiments"
               value={metrics.total_experiments ?? 0}
               icon="flask-outline"
               color="amber"

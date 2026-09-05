@@ -17,6 +17,11 @@ require_once __DIR__ . '/../config/db.php';
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
 $user_id = get_current_user_id();
+if (empty($user_id)) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+    exit;
+}
 $dataset_id = $input['dataset_id'] ?? null;
 $analysis_name = trim($input['analysis_name'] ?? 'Uptake Simulation Run');
 
@@ -133,22 +138,6 @@ try {
     $stmt->execute([
         $uuid, $user_id, $dataset_id, $analysis_name, $shape, $material, $nanoparticle_size, $shape, $charge, $charge, $cell_type, $exposure_time, $concentration, $uptake_percentage, $uptake_percentage, $diffusion_score, $drug_release_rate, $predicted_toxicity, $delivery_score, 96.5, $mechanism, $prediction_result_json, $optimization_recommendation, $deterministic_hash
     ]);
-
-    // Insert into experiments table
-    try {
-        $exp_stmt = $pdo->prepare("INSERT INTO experiments (id, user_id, title, description, nanoparticle_type, core_material, particle_size_nm, target_cell_line, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $exp_stmt->execute([$uuid, $user_id, $analysis_name, "Simulation Protocol: {$optimization_recommendation}", $shape, $material, $nanoparticle_size, $cell_type, 'Completed']);
-    } catch (Throwable $ex_err) {
-        // Ignore if schema difference
-    }
-
-    // Insert into nanoparticle_datasets table
-    try {
-        $ds_stmt = $pdo->prepare("INSERT INTO nanoparticle_datasets (id, user_id, dataset_name, name, shape, nanoparticle_type, material, core_material, charge, surface_charge_mv, nanoparticle_size, size_nm, concentration, cell_type, uptake_efficiency_percent, toxicity_score, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $ds_stmt->execute([$uuid, $user_id, $analysis_name, $analysis_name, $shape, $shape, $material, $material, $charge, $charge, $nanoparticle_size, $nanoparticle_size, $concentration, $cell_type, $uptake_percentage, $predicted_toxicity, $optimization_recommendation]);
-    } catch (Throwable $ds_err) {
-        // Ignore if schema difference
-    }
 
     // Insert into history
     $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");

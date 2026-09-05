@@ -12,6 +12,9 @@ if ($pdo instanceof PDO) {
             $stmt = $pdo->prepare("SELECT p.*, COALESCE(u.name, u.full_name) as full_name, u.institution FROM analysis_results p LEFT JOIN users u ON p.user_id = u.id WHERE p.id = ? AND p.user_id = ? LIMIT 1");
             $stmt->execute([$id, $user_id]);
             $row = $stmt->fetch() ?: null;
+            if (!$row) {
+                http_response_code(404);
+            }
         } else {
             $stmt = $pdo->prepare("SELECT p.*, COALESCE(u.name, u.full_name) as full_name, u.institution FROM analysis_results p LEFT JOIN users u ON p.user_id = u.id WHERE p.user_id = ? ORDER BY p.created_at DESC LIMIT 1");
             $stmt->execute([$user_id]);

@@ -9,20 +9,23 @@ import api from '../services/api';
 
 export default function ResultsScreen({ route, navigation }) {
   const passedResult = route.params?.result || null;
+  const resultId = route.params?.id || route.params?.resultId || null;
 
-  const [loading, setLoading] = useState(!passedResult);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [resultsList, setResultsList] = useState(passedResult ? [passedResult] : []);
 
   const fetchResults = async () => {
     try {
-      const res = await api.getResults();
+      const res = await api.getResults(resultId);
       if (res.status === 'success') {
         const fetched = res.results || (res.data ? [res.data] : []);
         setResultsList(fetched);
+      } else {
+        setResultsList([]);
       }
     } catch (e) {
-      // Keep state
+      setResultsList([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -30,13 +33,13 @@ export default function ResultsScreen({ route, navigation }) {
   };
 
   useEffect(() => {
-    if (passedResult) {
+    if (passedResult && !resultId) {
       setResultsList([passedResult]);
       setLoading(false);
     } else {
       fetchResults();
     }
-  }, [passedResult]);
+  }, [passedResult, resultId]);
 
   const onRefresh = () => {
     setRefreshing(true);
