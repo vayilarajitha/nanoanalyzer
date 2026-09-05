@@ -267,6 +267,7 @@ export default function DashboardScreen({ navigation }) {
             ))
           ) : (
             <Text style={styles.noHistoryText}>No recent simulation history found.</Text>
+          )}
         </View>
       </ScrollView>
 
