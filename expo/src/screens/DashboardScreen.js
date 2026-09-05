@@ -131,7 +131,7 @@ export default function DashboardScreen({ navigation }) {
             <StatCard
               title="Simulations Run"
               value={metrics.total_predictions ?? 0}
-              icon="cpu-outline"
+              icon="hardware-chip-outline"
               color="primary"
             />
             <StatCard
