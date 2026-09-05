@@ -19,14 +19,14 @@ try {
     if ($action === 'create') {
         $title = trim($_POST['title'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        $np_type = trim($_POST['nanoparticle_type'] ?? 'Polymeric');
-        $material = trim($_POST['core_material'] ?? 'Gold (Au)');
-        $size = floatval($_POST['particle_size_nm'] ?? 45.0);
-        $cell = trim($_POST['target_cell_line'] ?? 'HeLa');
+        $np_type = trim($_POST['nanoparticle_type'] ?? '');
+        $material = trim($_POST['core_material'] ?? '');
+        $size = isset($_POST['particle_size_nm']) && $_POST['particle_size_nm'] !== '' ? floatval($_POST['particle_size_nm']) : null;
+        $cell = trim($_POST['target_cell_line'] ?? '');
         $status = trim($_POST['status'] ?? 'In Progress');
 
-        if (empty($title) || empty($material)) {
-            echo json_encode(['status' => 'error', 'message' => 'Experiment title and core material are required.']);
+        if (empty($title) || empty($material) || empty($np_type) || $size === null || empty($cell)) {
+            echo json_encode(['status' => 'error', 'message' => 'Please fill in all required experiment fields (Title, Material, Category, Size, Target Cell Line).']);
             exit;
         }
 

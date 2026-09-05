@@ -53,13 +53,19 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
     // Upload Dataset CSV & Metadata
-    $dataset_name = trim($_POST['dataset_name'] ?? $_POST['name'] ?? 'Nanoparticle Experiment Set');
-    $size = floatval($_POST['nanoparticle_size'] ?? $_POST['size_nm'] ?? 45.0);
-    $material = trim($_POST['material'] ?? $_POST['core_material'] ?? 'Polymeric');
-    $shape = trim($_POST['shape'] ?? $_POST['nanoparticle_type'] ?? 'Spherical');
-    $charge = floatval($_POST['charge'] ?? $_POST['surface_charge_mv'] ?? 20.0);
-    $concentration = floatval($_POST['concentration'] ?? 50.0);
+    $dataset_name = trim($_POST['dataset_name'] ?? $_POST['name'] ?? '');
+    $size = isset($_POST['nanoparticle_size']) && $_POST['nanoparticle_size'] !== '' ? floatval($_POST['nanoparticle_size']) : (isset($_POST['size_nm']) && $_POST['size_nm'] !== '' ? floatval($_POST['size_nm']) : null);
+    $material = trim($_POST['material'] ?? $_POST['core_material'] ?? '');
+    $shape = trim($_POST['shape'] ?? $_POST['nanoparticle_type'] ?? '');
+    $charge = isset($_POST['charge']) && $_POST['charge'] !== '' ? floatval($_POST['charge']) : (isset($_POST['surface_charge_mv']) && $_POST['surface_charge_mv'] !== '' ? floatval($_POST['surface_charge_mv']) : null);
+    $concentration = isset($_POST['concentration']) && $_POST['concentration'] !== '' ? floatval($_POST['concentration']) : null;
     $uploaded_file_url = '';
+
+    if (empty($dataset_name) || empty($material) || empty($shape) || $size === null) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Please provide all required dataset parameters (dataset_name, material, shape, size).']);
+        exit;
+    }
 
     // Handle CSV File upload
     if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {

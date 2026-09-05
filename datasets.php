@@ -82,21 +82,21 @@ include __DIR__ . '/includes/header.php';
               <?php if (count($datasets) > 0): ?>
                 <?php foreach ($datasets as $row): ?>
                   <?php 
-                    $ds_name = htmlspecialchars($row['dataset_name'] ?? $row['name'] ?? 'Dataset');
-                    $ds_material = htmlspecialchars($row['core_material'] ?? $row['material'] ?? 'Polymeric');
-                    $ds_type = htmlspecialchars($row['nanoparticle_type'] ?? $row['shape'] ?? 'Spherical');
-                    $ds_size = $row['size_nm'] ?? $row['nanoparticle_size'] ?? 45.0;
-                    $ds_charge = $row['surface_charge_mv'] ?? $row['charge'] ?? 20.0;
+                    $ds_name = htmlspecialchars($row['dataset_name'] ?? $row['name'] ?? '—');
+                    $ds_material = htmlspecialchars($row['core_material'] ?? $row['material'] ?? '—');
+                    $ds_type = htmlspecialchars($row['nanoparticle_type'] ?? $row['shape'] ?? '—');
+                    $ds_size = isset($row['size_nm']) ? $row['size_nm'] : ($row['nanoparticle_size'] ?? '—');
+                    $ds_charge = isset($row['surface_charge_mv']) ? $row['surface_charge_mv'] : ($row['charge'] ?? '—');
                   ?>
                   <tr>
                     <td class="fw-bold parameter-value"><?php echo $ds_name; ?></td>
                     <td><span class="badge badge-tech primary"><?php echo $ds_material; ?></span></td>
                     <td class="parameter-value"><?php echo $ds_type; ?></td>
-                    <td class="parameter-value"><?php echo $ds_size; ?> nm</td>
-                    <td class="parameter-value"><?php echo $ds_charge > 0 ? '+' . $ds_charge : $ds_charge; ?> mV</td>
-                    <td><span class="badge badge-tech cyan"><?php echo htmlspecialchars($row['cell_type'] ?? 'HeLa'); ?></span></td>
-                    <td class="text-emerald fw-bold"><?php echo $row['uptake_efficiency_percent'] ?? 85.0; ?>%</td>
-                    <td class="text-rose fw-bold"><?php echo $row['toxicity_score'] ?? 12.0; ?></td>
+                    <td class="parameter-value"><?php echo $ds_size !== '—' ? ($ds_size . ' nm') : '—'; ?></td>
+                    <td class="parameter-value"><?php echo is_numeric($ds_charge) ? (($ds_charge > 0 ? '+' . $ds_charge : $ds_charge) . ' mV') : '—'; ?></td>
+                    <td><span class="badge badge-tech cyan"><?php echo htmlspecialchars($row['cell_type'] ?? '—'); ?></span></td>
+                    <td class="text-emerald fw-bold"><?php echo isset($row['uptake_efficiency_percent']) ? ($row['uptake_efficiency_percent'] . '%') : '—'; ?></td>
+                    <td class="text-rose fw-bold"><?php echo isset($row['toxicity_score']) ? $row['toxicity_score'] : '—'; ?></td>
                     <td>
                       <button onclick="deleteDataset('<?php echo $row['id']; ?>')" class="btn btn-sm btn-glass text-danger"><i class="bi bi-trash"></i></button>
                     </td>

@@ -44,15 +44,15 @@ if ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
     $title = trim($input['title'] ?? '');
     $description = trim($input['description'] ?? '');
-    $np_type = trim($input['nanoparticle_type'] ?? 'Polymeric');
-    $material = trim($input['core_material'] ?? 'Gold (Au)');
-    $size = floatval($input['particle_size_nm'] ?? 45.0);
-    $cell = trim($input['target_cell_line'] ?? 'HeLa');
+    $np_type = trim($input['nanoparticle_type'] ?? '');
+    $material = trim($input['core_material'] ?? '');
+    $size = isset($input['particle_size_nm']) && $input['particle_size_nm'] !== '' ? floatval($input['particle_size_nm']) : null;
+    $cell = trim($input['target_cell_line'] ?? '');
     $status = trim($input['status'] ?? 'In Progress');
 
-    if (empty($title) || empty($material)) {
+    if (empty($title) || empty($material) || empty($np_type) || $size === null || empty($cell)) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Experiment title and core material are required.']);
+        echo json_encode(['status' => 'error', 'message' => 'Please provide all required experiment fields (title, core_material, nanoparticle_type, particle_size_nm, target_cell_line).']);
         exit;
     }
 

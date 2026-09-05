@@ -17,16 +17,21 @@ try {
     }
 
     if ($action === 'create') {
-        $name = trim($_POST['name'] ?? $_POST['dataset_name'] ?? 'Nanoparticle Dataset');
-        $np_type = trim($_POST['nanoparticle_type'] ?? $_POST['shape'] ?? 'Spherical');
-        $material = trim($_POST['core_material'] ?? $_POST['material'] ?? 'Polymeric');
-        $charge = floatval($_POST['surface_charge_mv'] ?? $_POST['charge'] ?? 20.0);
-        $size = floatval($_POST['size_nm'] ?? $_POST['nanoparticle_size'] ?? 45.0);
-        $concentration = floatval($_POST['concentration'] ?? 50.0);
-        $cell_type = trim($_POST['cell_type'] ?? 'HeLa');
-        $uptake_eff = floatval($_POST['uptake_efficiency_percent'] ?? 85.0);
-        $toxicity = floatval($_POST['toxicity_score'] ?? 12.0);
+        $name = trim($_POST['name'] ?? $_POST['dataset_name'] ?? '');
+        $np_type = trim($_POST['nanoparticle_type'] ?? $_POST['shape'] ?? '');
+        $material = trim($_POST['core_material'] ?? $_POST['material'] ?? '');
+        $charge = isset($_POST['surface_charge_mv']) && $_POST['surface_charge_mv'] !== '' ? floatval($_POST['surface_charge_mv']) : (isset($_POST['charge']) && $_POST['charge'] !== '' ? floatval($_POST['charge']) : null);
+        $size = isset($_POST['size_nm']) && $_POST['size_nm'] !== '' ? floatval($_POST['size_nm']) : (isset($_POST['nanoparticle_size']) && $_POST['nanoparticle_size'] !== '' ? floatval($_POST['nanoparticle_size']) : null);
+        $concentration = isset($_POST['concentration']) && $_POST['concentration'] !== '' ? floatval($_POST['concentration']) : null;
+        $cell_type = trim($_POST['cell_type'] ?? '');
+        $uptake_eff = isset($_POST['uptake_efficiency_percent']) && $_POST['uptake_efficiency_percent'] !== '' ? floatval($_POST['uptake_efficiency_percent']) : null;
+        $toxicity = isset($_POST['toxicity_score']) && $_POST['toxicity_score'] !== '' ? floatval($_POST['toxicity_score']) : null;
         $notes = trim($_POST['notes'] ?? '');
+
+        if (empty($name) || empty($material) || empty($np_type) || $size === null || empty($cell_type)) {
+            echo json_encode(['status' => 'error', 'message' => 'Please provide all required dataset fields (Name, Material, Type, Size, Cell Line).']);
+            exit;
+        }
 
         $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             mt_rand(0, 0xffff), mt_rand(0, 0xffff),

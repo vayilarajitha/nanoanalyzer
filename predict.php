@@ -7,16 +7,18 @@ $user_id = get_current_user_id();
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $analysis_name = trim($_POST['analysis_name'] ?? 'Uptake Simulation Run');
-    $core_material = trim($_POST['core_material'] ?? 'Gold (Au)');
-    $np_type = trim($_POST['nanoparticle_type'] ?? 'Polymeric');
-    $size_nm = floatval($_POST['size_nm'] ?? 45.0);
-    $charge_mv = floatval($_POST['surface_charge_mv'] ?? 20.0);
-    $cell_type = trim($_POST['cell_type'] ?? 'HeLa');
-    $exposure_time = floatval($_POST['exposure_time_h'] ?? 6.0);
-    $dose_ug_ml = floatval($_POST['concentration_ug_ml'] ?? 50.0);
+    $analysis_name = trim($_POST['analysis_name'] ?? '');
+    $core_material = trim($_POST['core_material'] ?? '');
+    $np_type = trim($_POST['nanoparticle_type'] ?? '');
+    $size_nm = isset($_POST['size_nm']) && $_POST['size_nm'] !== '' ? floatval($_POST['size_nm']) : 0;
+    $charge_mv = isset($_POST['surface_charge_mv']) && $_POST['surface_charge_mv'] !== '' ? floatval($_POST['surface_charge_mv']) : 0;
+    $cell_type = trim($_POST['cell_type'] ?? '');
+    $exposure_time = isset($_POST['exposure_time_h']) && $_POST['exposure_time_h'] !== '' ? floatval($_POST['exposure_time_h']) : 0;
+    $dose_ug_ml = isset($_POST['concentration_ug_ml']) && $_POST['concentration_ug_ml'] !== '' ? floatval($_POST['concentration_ug_ml']) : 0;
 
-    if ($size_nm <= 0) $size_nm = 45.0;
+    if (empty($analysis_name) || empty($core_material) || empty($np_type) || $size_nm <= 0 || empty($cell_type) || $exposure_time <= 0 || $dose_ug_ml <= 0) {
+        $error = 'All parameter fields are required. Please enter valid values without leaving any blank.';
+    } else {
 
     // --- DETERMINISTIC BIOPHYSICAL MATHEMATICAL PREDICTION MODEL ---
     // 1. Particle Size Endocytic Peak Curve (Gaussian centered at 45 nm)
@@ -119,6 +121,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $uuid, $user_id, $analysis_name, $np_type, $core_material, $size_nm, $np_type, $charge_mv, $charge_mv, $cell_type, $exposure_time, $dose_ug_ml, $predicted_uptake, $predicted_uptake, $diffusion_score, $drug_release_rate, $predicted_toxicity, $delivery_score, $confidence_score, $mechanism, $pred_json, $recommendation, $deterministic_hash
         ]);
 
+        // Insert into experiments table strictly based on user's entered parameters
+        try {
+            $exp_stmt = $pdo->prepare("INSERT INTO experiments (id, user_id, title, description, nanoparticle_type, core_material, particle_size_nm, target_cell_line, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $exp_stmt->execute([
+                $uuid,
+                $user_id,
+                $analysis_name,
+                "Simulation Protocol: {$analysis_name} ({$size_nm}nm {$core_material} on {$cell_type})",
+                $np_type,
+                $core_material,
+                $size_nm,
+                $cell_type,
+                'Completed'
+            ]);
+        } catch (Throwable $ex_err) {
+            // Ignore if schema difference
+        }
+
         // Insert into history table
         $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");
         $hist_stmt->execute([$user_id, "Ran nano uptake simulation: {$analysis_name} ({$size_nm}nm {$core_material})", $uuid]);
@@ -127,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } catch (Throwable $e) {
         $error = 'Error saving simulation record: ' . $e->getMessage();
+    }
     }
 }
 

@@ -139,6 +139,14 @@ try {
         $uuid, $user_id, $dataset_id, $analysis_name, $shape, $material, $nanoparticle_size, $shape, $charge, $charge, $cell_type, $exposure_time, $concentration, $uptake_percentage, $uptake_percentage, $diffusion_score, $drug_release_rate, $predicted_toxicity, $delivery_score, 96.5, $mechanism, $prediction_result_json, $optimization_recommendation, $deterministic_hash
     ]);
 
+    // Insert into experiments
+    try {
+        $exp_stmt = $pdo->prepare("INSERT INTO experiments (id, user_id, title, description, nanoparticle_type, core_material, particle_size_nm, target_cell_line, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $exp_stmt->execute([$uuid, $user_id, $analysis_name, "Simulation Protocol: {$analysis_name} ({$nanoparticle_size}nm {$material} on {$cell_type})", $shape, $material, $nanoparticle_size, $cell_type, 'Completed']);
+    } catch (Throwable $ex_err) {
+        // Ignore if schema difference
+    }
+
     // Insert into history
     $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");
     $hist_stmt->execute([$user_id, "Ran nano uptake simulation: {$analysis_name} ({$nanoparticle_size}nm {$material})", $uuid]);
