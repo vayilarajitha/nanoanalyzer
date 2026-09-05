@@ -102,7 +102,7 @@ include __DIR__ . '/includes/header.php';
             </div>
             <div class="col-6">
               <label class="form-label">Size (nm)</label>
-              <input type="number" step="0.1" name="particle_size_nm" class="form-control" placeholder="45.0" required>
+              <input type="number" step="0.1" name="particle_size_nm" class="form-control" placeholder="e.g. 45.0" required>
             </div>
           </div>
           <div class="mb-3">

@@ -132,6 +132,7 @@ include __DIR__ . '/includes/header.php';
             <div class="col-md-6">
               <label class="form-label parameter-label">Core Material</label>
               <select name="core_material" class="form-select parameter-value" required>
+                <option value="" disabled selected>Select Core Material...</option>
                 <option value="Gold (Au)">Gold (Au)</option>
                 <option value="Silica (SiO2)">Silica (SiO2)</option>
                 <option value="PLGA Polymer">PLGA Polymer</option>
@@ -142,6 +143,7 @@ include __DIR__ . '/includes/header.php';
             <div class="col-md-6">
               <label class="form-label parameter-label">Type</label>
               <select name="nanoparticle_type" class="form-select parameter-value" required>
+                <option value="" disabled selected>Select Category / Type...</option>
                 <option value="Polymeric">Polymeric</option>
                 <option value="Inorganic">Inorganic</option>
                 <option value="Lipid-based">Lipid-based</option>
@@ -152,11 +154,11 @@ include __DIR__ . '/includes/header.php';
           <div class="row g-3 mb-3">
             <div class="col-md-4">
               <label class="form-label parameter-label">Size (nm)</label>
-              <input type="number" step="0.1" name="size_nm" class="form-control parameter-value" placeholder="45.0" required>
+              <input type="number" step="0.1" name="size_nm" class="form-control parameter-value" placeholder="e.g. 45.0" required>
             </div>
             <div class="col-md-4">
               <label class="form-label parameter-label">Surface Charge (mV)</label>
-              <input type="number" step="0.1" name="surface_charge_mv" class="form-control parameter-value" placeholder="20.0" required>
+              <input type="number" step="0.1" name="surface_charge_mv" class="form-control parameter-value" placeholder="e.g. 20.0" required>
             </div>
             <div class="col-md-4">
               <label class="form-label parameter-label">Cell Line</label>
@@ -166,11 +168,11 @@ include __DIR__ . '/includes/header.php';
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label parameter-label">Uptake Efficiency (%)</label>
-              <input type="number" step="0.1" name="uptake_efficiency_percent" class="form-control parameter-value" placeholder="85.0" required>
+              <input type="number" step="0.1" name="uptake_efficiency_percent" class="form-control parameter-value" placeholder="e.g. 85.0" required>
             </div>
             <div class="col-md-6">
               <label class="form-label parameter-label">Toxicity Score (0-100)</label>
-              <input type="number" step="0.1" name="toxicity_score" class="form-control parameter-value" placeholder="12.0" required>
+              <input type="number" step="0.1" name="toxicity_score" class="form-control parameter-value" placeholder="e.g. 12.0" required>
             </div>
           </div>
           <div class="mb-3">
