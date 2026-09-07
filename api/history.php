@@ -15,15 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/db.php';
 
 $user_id = get_current_user_id();
-if (empty($user_id)) {
-    http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
-    exit;
-}
-
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'DELETE' || ($method === 'POST' && ($_POST['action'] ?? '') === 'delete')) {
+    if (empty($user_id)) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+        exit;
+    }
     $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
     $id = trim($input['id'] ?? $_GET['id'] ?? '');
 
@@ -52,6 +51,18 @@ if ($method === 'DELETE' || ($method === 'POST' && ($_POST['action'] ?? '') === 
     } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
+    exit;
+}
+
+if (empty($user_id)) {
+    http_response_code(200);
+    echo json_encode([
+        'status' => 'success',
+        'history' => [],
+        'results' => [],
+        'activities' => [],
+        'authenticated' => false
+    ]);
     exit;
 }
 

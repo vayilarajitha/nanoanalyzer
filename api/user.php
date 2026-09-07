@@ -15,20 +15,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/db.php';
 
 $user_id = get_current_user_id();
-if (empty($user_id)) {
-    http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
-    exit;
-}
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
+    if (empty($user_id)) {
+        http_response_code(200);
+        echo json_encode([
+            'status' => 'success',
+            'authenticated' => false,
+            'user' => null,
+            'message' => 'No active user session.'
+        ]);
+        exit;
+    }
+
     try {
         if (!($pdo instanceof PDO)) throw new Exception("Supabase DB connection not configured.");
         $stmt = $pdo->prepare("SELECT id, name, full_name, email, role, profile_image, avatar_url, institution, bio, created_at FROM users WHERE id = ?");
         $stmt->execute([$user_id]);
-        $user = $stmt->fetch();
-        echo json_encode(['status' => 'success', 'user' => $user]);
+        $user = $stmt->fetch() ?: null;
+        echo json_encode(['status' => 'success', 'authenticated' => true, 'user' => $user]);
     } catch (Throwable $e) {
         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
@@ -36,6 +42,11 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
+    if (empty($user_id)) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+        exit;
+    }
     $name = trim($_POST['name'] ?? $_POST['full_name'] ?? '');
     $institution = trim($_POST['institution'] ?? '');
     $bio = trim($_POST['bio'] ?? '');

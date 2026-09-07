@@ -14,14 +14,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../config/db.php';
 
-$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
-
-$user_id = get_current_user_id();
-if (empty($user_id)) {
-    http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    http_response_code(200);
+    echo json_encode([
+        'status' => 'success',
+        'endpoint' => 'api/predict.php',
+        'description' => 'NanoUptake Cellular Uptake Prediction Engine API',
+        'supported_methods' => ['GET', 'POST'],
+        'parameters' => [
+            'nanoparticle_size' => 'float (nm, optimal range 40-50nm)',
+            'material' => 'Gold (Au), Liposome, PLGA Polymer, Silica (SiO2), Iron Oxide (Fe3O4)',
+            'shape' => 'Spherical, Rod / Nanorod, Cube / Cubic, Star / Nanostar, Disc / Platelet',
+            'charge' => 'float (Zeta potential mV, e.g. +20.0)',
+            'concentration' => 'float (ug/ml)',
+            'cell_type' => 'HeLa, MDA-MB-231, Macrophage, HEK293, Endothelial',
+            'exposure_time' => 'float (hours)'
+        ]
+    ]);
     exit;
 }
+
+$input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+$user_id = get_current_user_id();
+
 $dataset_id = $input['dataset_id'] ?? null;
 $analysis_name = trim($input['analysis_name'] ?? 'Uptake Simulation Run');
 
@@ -127,8 +142,9 @@ try {
         mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
     );
 
-    $hash_string = strtolower("{$material}|{$shape}|{$nanoparticle_size}|{$charge}|{$cell_type}|{$exposure_time}|{$concentration}");
-    $deterministic_hash = md5($hash_string);
+    if (!empty($user_id)) {
+        $hash_string = strtolower("{$material}|{$shape}|{$nanoparticle_size}|{$charge}|{$cell_type}|{$exposure_time}|{$concentration}");
+        $deterministic_hash = md5($hash_string);
 
     // Insert into analysis_results
     $stmt = $pdo->prepare("INSERT INTO analysis_results 
@@ -159,12 +175,14 @@ try {
         // Ignore if schema difference
     }
 
-    // Insert into history
-    $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");
-    $hist_stmt->execute([$user_id, "Ran nano uptake simulation: {$analysis_name} ({$nanoparticle_size}nm {$material})", $uuid]);
+        // Insert into history
+        $hist_stmt = $pdo->prepare("INSERT INTO history (user_id, activity, result_id) VALUES (?, ?, ?)");
+        $hist_stmt->execute([$user_id, "Ran nano uptake simulation: {$analysis_name} ({$nanoparticle_size}nm {$material})", $uuid]);
+    }
 
     echo json_encode([
         'status' => 'success',
+        'authenticated' => !empty($user_id),
         'id' => $uuid,
         'uptake_percentage' => $uptake_percentage,
         'diffusion_score' => $diffusion_score,

@@ -4,6 +4,15 @@ require_once __DIR__ . '/../config/db.php';
 header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+// Validate supported CRUD actions
+$supported_actions = ['create', 'update', 'delete', 'list', 'read'];
+if (!in_array($action, $supported_actions, true)) {
+    http_response_code(200);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid action.']);
+    exit;
+}
+
 $user_id = get_current_user_id();
 if (empty($user_id)) {
     http_response_code(401);
@@ -76,6 +85,14 @@ try {
         $stmt->execute([$id, $user_id]);
 
         echo json_encode(['status' => 'success', 'message' => 'Dataset entry deleted.']);
+        exit;
+    }
+
+    if ($action === 'list' || $action === 'read') {
+        $stmt = $pdo->prepare("SELECT * FROM nanoparticle_datasets WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$user_id]);
+        $datasets = $stmt->fetchAll() ?: [];
+        echo json_encode(['status' => 'success', 'datasets' => $datasets]);
         exit;
     }
 

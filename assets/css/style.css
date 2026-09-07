@@ -150,6 +150,7 @@ p, .lead, span, div, td, th {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding-bottom: 120px;
 }
 
 /* Navbar */
@@ -322,9 +323,11 @@ p, .lead, span, div, td, th {
   bottom: 24px;
   right: 24px;
   z-index: 9999;
+  pointer-events: none;
 }
 
 #chatbot-toggle-btn {
+  pointer-events: auto;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -345,6 +348,7 @@ p, .lead, span, div, td, th {
 }
 
 #chatbot-modal {
+  pointer-events: auto;
   width: 380px;
   height: 520px;
   position: absolute;

@@ -15,15 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/db.php';
 
 $user_id = get_current_user_id();
-if (empty($user_id)) {
-    http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
-    exit;
-}
-
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'DELETE') {
+    if (empty($user_id)) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+        exit;
+    }
     $input = json_decode(file_get_contents('php://input'), true);
     $id = $input['id'] ?? $_GET['id'] ?? null;
     if (!$id) {
@@ -51,6 +50,17 @@ if ($method === 'DELETE') {
 }
 
 $result_id = $_GET['id'] ?? null;
+
+if (empty($user_id)) {
+    if ($result_id) {
+        http_response_code(404);
+        echo json_encode(['status' => 'error', 'message' => 'Result record not found or access denied.']);
+        exit;
+    }
+    http_response_code(200);
+    echo json_encode(['status' => 'success', 'results' => [], 'authenticated' => false]);
+    exit;
+}
 
 try {
     if (!($pdo instanceof PDO)) {

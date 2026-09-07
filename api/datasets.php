@@ -15,14 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/db.php';
 
 $user_id = get_current_user_id();
-if (empty($user_id)) {
-    http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
-    exit;
-}
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
+    // If not authenticated, return empty datasets array without demo/seed data
+    if (empty($user_id)) {
+        if (!empty($_GET['id'])) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'message' => 'Dataset not found or access denied.']);
+            exit;
+        }
+        http_response_code(200);
+        echo json_encode(['status' => 'success', 'datasets' => [], 'authenticated' => false]);
+        exit;
+    }
+
     // List datasets strictly for current user
     try {
         if (!($pdo instanceof PDO)) throw new Exception("Supabase PostgreSQL DB connection unavailable.");
@@ -52,6 +59,11 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
+    if (empty($user_id)) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+        exit;
+    }
     // Upload Dataset CSV & Metadata
     $dataset_name = trim($_POST['dataset_name'] ?? $_POST['name'] ?? '');
     $size = isset($_POST['nanoparticle_size']) && $_POST['nanoparticle_size'] !== '' ? floatval($_POST['nanoparticle_size']) : (isset($_POST['size_nm']) && $_POST['size_nm'] !== '' ? floatval($_POST['size_nm']) : null);
@@ -130,6 +142,11 @@ if ($method === 'POST') {
 }
 
 if ($method === 'DELETE') {
+    if (empty($user_id)) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
+        exit;
+    }
     $input = json_decode(file_get_contents('php://input'), true);
     $id = $input['id'] ?? $_GET['id'] ?? null;
 
