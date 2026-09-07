@@ -168,7 +168,7 @@ function deleteExperiment(id) {
   .then(data => {
     if (data.status === 'success') {
       showToast(data.message, 'success');
-      setTimeout(() => location.reload(), 800);
+      location.reload();
     } else {
       showToast(data.message, 'error');
     }
