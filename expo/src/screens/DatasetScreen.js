@@ -19,8 +19,8 @@ export default function DatasetScreen({ navigation }) {
   // Upload Form State
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [datasetName, setDatasetName] = useState('');
-  const [material, setMaterial] = useState('Polymeric');
-  const [sizeNm, setSizeNm] = useState('45');
+  const [material, setMaterial] = useState('');
+  const [sizeNm, setSizeNm] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -66,8 +66,8 @@ export default function DatasetScreen({ navigation }) {
 
   const handleUploadDataset = async () => {
     setError('');
-    if (!datasetName.trim()) {
-      setError('Please provide a dataset name.');
+    if (!datasetName.trim() || !material.trim() || !sizeNm.trim()) {
+      setError('All fields (Dataset Name, Material, Size) are required.');
       return;
     }
 
@@ -172,22 +172,24 @@ export default function DatasetScreen({ navigation }) {
 
             <View style={styles.inputRow}>
               <CustomInput
-                label="Material"
-                placeholder="Gold (Au)"
+                label="Material *"
+                placeholder="e.g. Gold (Au)"
                 icon="cube-outline"
                 value={material}
                 onChangeText={setMaterial}
                 containerStyle={{ flex: 1 }}
+                required
               />
               <View style={{ width: 10 }} />
               <CustomInput
-                label="Size (nm)"
-                placeholder="45"
+                label="Size (nm) *"
+                placeholder="e.g. 45"
                 icon="resize-outline"
                 value={sizeNm}
                 onChangeText={setSizeNm}
                 keyboardType="numeric"
                 containerStyle={{ flex: 1 }}
+                required
               />
             </View>
 

@@ -1,17 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import api from '../services/api';
-import { saveSession } from '../services/authService';
+import { getSession, saveSession, clearSession } from '../services/authService';
 
 export default function LoginScreen({ navigation }) {
+  const [existingUser, setExistingUser] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    checkCurrentSession();
+  }, []);
+
+  const checkCurrentSession = async () => {
+    try {
+      const user = await getSession();
+      if (user && user.id) {
+        setExistingUser(user);
+      }
+    } catch (e) {
+      setExistingUser(null);
+    }
+  };
+
+  const handleContinueAsExisting = () => {
+    navigation.replace('Main');
+  };
+
+  const handleSwitchAccount = async () => {
+    await clearSession();
+    setExistingUser(null);
+    setEmail('');
+    setPassword('');
+    setError('');
+  };
 
   const handleLogin = async () => {
     setError('');
@@ -53,57 +81,83 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.brandSubtitle}>Nanoparticle Cellular Uptake Analysis</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Sign In</Text>
-          <Text style={styles.cardSubtitle}>Enter your credentials to access your simulations</Text>
-
-          {error ? (
-            <View style={styles.errorBox}>
-              <Ionicons name="alert-circle-outline" size={18} color={COLORS.rose} style={{ marginRight: 6 }} />
-              <Text style={styles.errorText}>{error}</Text>
+        {existingUser ? (
+          <View style={styles.activeUserCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+              <View style={styles.activeUserAvatar}>
+                <Ionicons name="person" size={24} color={COLORS.cyan} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.activeUserLabel}>CURRENTLY SIGNED IN</Text>
+                <Text style={styles.activeUserName}>{existingUser.name || existingUser.full_name || 'Researcher'}</Text>
+                <Text style={styles.activeUserEmail}>{existingUser.email}</Text>
+              </View>
             </View>
-          ) : null}
 
-          <CustomInput
-            label="Email Address"
-            placeholder="researcher@lab.org"
-            icon="mail-outline"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
+            <CustomButton
+              title="Continue to Dashboard"
+              onPress={handleContinueAsExisting}
+              icon="arrow-forward-circle-outline"
+            />
 
-          <CustomInput
-            label="Password"
-            placeholder="••••••••"
-            icon="lock-closed-outline"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}
-            style={styles.forgotLink}
-          >
-            <Text style={styles.forgotText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          <CustomButton
-            title="Sign In"
-            onPress={handleLogin}
-            loading={loading}
-            icon="log-in-outline"
-            style={{ marginTop: 12 }}
-          />
-
-          <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.signupText}>Register</Text>
+            <TouchableOpacity onPress={handleSwitchAccount} style={styles.switchAccountBtn} activeOpacity={0.7}>
+              <Ionicons name="log-out-outline" size={16} color={COLORS.rose} style={{ marginRight: 6 }} />
+              <Text style={styles.switchAccountText}>Switch Account / Sign In with another ID</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        ) : (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Sign In</Text>
+            <Text style={styles.cardSubtitle}>Enter your credentials to access your simulations</Text>
+
+            {error ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle-outline" size={18} color={COLORS.rose} style={{ marginRight: 6 }} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
+            <CustomInput
+              label="Email Address"
+              placeholder="researcher@lab.org"
+              icon="mail-outline"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+            />
+
+            <CustomInput
+              label="Password"
+              placeholder="••••••••"
+              icon="lock-closed-outline"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+              style={styles.forgotLink}
+            >
+              <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            <CustomButton
+              title="Sign In"
+              onPress={handleLogin}
+              loading={loading}
+              icon="log-in-outline"
+              style={{ marginTop: 12 }}
+            />
+
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                <Text style={styles.signupText}>Register</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -199,5 +253,50 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.cyan,
     fontWeight: 'bold',
+  },
+  activeUserCard: {
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.borderCyan,
+    borderWidth: 1.5,
+    borderRadius: 20,
+    padding: 24,
+  },
+  activeUserAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: COLORS.cyanGlow,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  activeUserLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.cyan,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  activeUserName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+  },
+  activeUserEmail: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  switchAccountBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 14,
+    paddingVertical: 10,
+  },
+  switchAccountText: {
+    fontSize: 13,
+    color: COLORS.rose,
+    fontWeight: '600',
   },
 });

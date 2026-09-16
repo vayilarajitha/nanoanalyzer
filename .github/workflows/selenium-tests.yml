@@ -1,0 +1,87 @@
+name: NanoAnalyzer Selenium E2E & Quality CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+env:
+  FRONTEND_URL: ${{ vars.FRONTEND_URL || 'https://nanoanalyzer.onrender.com' }}
+  BACKEND_URL: ${{ vars.BACKEND_URL || 'https://nanoanalyzer.onrender.com' }}
+  ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL || 'admin@nanoanalyzer.io' }}
+  ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'admin123' }}
+  RESEARCHER_EMAIL: ${{ secrets.RESEARCHER_EMAIL || 'alex@nanoanalyzer.io' }}
+  RESEARCHER_PASSWORD: ${{ secrets.RESEARCHER_PASSWORD || 'researcher123' }}
+  USER_A_EMAIL: ${{ secrets.USER_A_EMAIL || 'selenium.user.a@example.com' }}
+  USER_A_PASSWORD: ${{ secrets.USER_A_PASSWORD || 'SeleniumPassA123!' }}
+  USER_B_EMAIL: ${{ secrets.USER_B_EMAIL || 'selenium.user.b@example.com' }}
+  USER_B_PASSWORD: ${{ secrets.USER_B_PASSWORD || 'SeleniumPassB123!' }}
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  selenium-e2e-tests:
+    name: Run Selenium E2E, Unit & Security Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Set up Python Runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: 3. Verify Google Chrome Installation
+        run: |
+          google-chrome --version || which google-chrome
+          chromedriver --version || true
+
+      - name: 4. Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 5. Render Backend Cold-Start Warm-up
+        run: |
+          echo "Pinging deployed backend: ${{ env.BACKEND_URL }} to wake up Render container..."
+          for i in {1..12}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "${{ env.BACKEND_URL }}/login.php" || true)
+            echo "Attempt $i: Response HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+              echo "Backend is active and warm."
+              break
+            fi
+            sleep 5
+          done
+
+      - name: 6. Run Pure Unit Tests
+        run: |
+          python -m unittest discover -s tests/unit -p "test_*.py" -v
+
+      - name: 7. Run Selenium E2E, API & Security Tests & Generate 21-Sheet XLSX
+        run: |
+          python run_ci_tests.py --url "${{ env.FRONTEND_URL }}" --backend-url "${{ env.BACKEND_URL }}" --headless
+
+      - name: 8. Upload XLSX Test Report Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nanoanalyzer-test-report
+          path: NanoAnalyzer_Selenium_Test_Report.xlsx
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: 9. Upload Failure Screenshots & Logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nanoanalyzer-test-evidence
+          path: |
+            test-results/screenshots/
+            screenshots/
+          if-no-files-found: ignore
+          retention-days: 14

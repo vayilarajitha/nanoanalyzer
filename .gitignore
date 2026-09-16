@@ -13,4 +13,8 @@ scratch/
 screenshots/
 e2e_test_runner.py
 E2E_Test_Report_*.xlsx
-
+__pycache__/
+test-results/
+android/**/build/
+android/.gradle/
+.gradle/

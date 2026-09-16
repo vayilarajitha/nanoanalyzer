@@ -1,0 +1,58 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.65"
+        android:scaleY="0.65"
+        android:translateX="18.9"
+        android:translateY="18.9">
+        
+        <!-- Central Core Hexagon (Nanoparticle core) -->
+        <path
+            android:fillColor="#4F46E5"
+            android:pathData="M54,20 L84,37.3 L84,70.7 L54,88 L24,70.7 L24,37.3 Z" />
+            
+        <!-- Inner Core Highlight -->
+        <path
+            android:fillColor="#6366F1"
+            android:pathData="M54,28 L76,40.7 L76,67.3 L54,80 L32,67.3 L32,40.7 Z" />
+            
+        <!-- Center Nucleus Ring -->
+        <path
+            android:fillColor="#06B6D4"
+            android:pathData="M54,40 C61.73,40 68,46.27 68,54 C68,61.73 61.73,68 54,68 C46.27,68 40,61.73 40,54 C40,46.27 46.27,40 54,40 Z" />
+
+        <!-- Center Glowing Dot -->
+        <path
+            android:fillColor="#10B981"
+            android:pathData="M54,48 C57.31,48 60,50.69 60,54 C60,57.31 57.31,60 54,60 C50.69,60 48,57.31 48,54 C48,50.69 50.69,48 54,48 Z" />
+
+        <!-- Orbiting Satellite Nodes (Drug uptake conjugates) -->
+        <!-- Top Node -->
+        <path
+            android:fillColor="#06B6D4"
+            android:pathData="M54,10 C57.31,10 60,12.69 60,16 C60,19.31 57.31,22 54,22 C50.69,22 48,19.31 48,16 C48,12.69 50.69,10 54,10 Z" />
+        <!-- Top-Right Node -->
+        <path
+            android:fillColor="#818CF8"
+            android:pathData="M86,28 C89.31,28 92,30.69 92,34 C92,37.31 89.31,40 86,40 C82.69,40 80,37.31 80,34 C80,30.69 82.69,28 86,28 Z" />
+        <!-- Bottom-Right Node -->
+        <path
+            android:fillColor="#10B981"
+            android:pathData="M86,68 C89.31,68 92,70.69 92,74 C92,77.31 89.31,80 86,80 C82.69,80 80,77.31 80,74 C80,70.69 82.69,68 86,68 Z" />
+        <!-- Bottom Node -->
+        <path
+            android:fillColor="#06B6D4"
+            android:pathData="M54,86 C57.31,86 60,88.69 60,92 C60,95.31 57.31,98 54,98 C50.69,98 48,95.31 48,92 C48,88.69 50.69,86 54,86 Z" />
+        <!-- Bottom-Left Node -->
+        <path
+            android:fillColor="#818CF8"
+            android:pathData="M22,68 C25.31,68 28,70.69 28,74 C28,77.31 25.31,80 22,80 C18.69,80 16,77.31 16,74 C16,70.69 18.69,68 22,68 Z" />
+        <!-- Top-Left Node -->
+        <path
+            android:fillColor="#10B981"
+            android:pathData="M22,28 C25.31,28 28,30.69 28,34 C28,37.31 25.31,40 22,40 C18.69,40 16,37.31 16,34 C16,30.69 18.69,28 22,28 Z" />
+    </group>
+</vector>

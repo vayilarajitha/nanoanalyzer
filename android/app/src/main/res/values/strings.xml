@@ -1,0 +1,20 @@
+<resources>
+    <!-- App Branding -->
+    <string name="app_name">NanoAnalyzer</string>
+
+    <!--
+        TARGET WEB APPLICATION URL:
+        - For Deployed Web App: Replace with your deployed URL (e.g., https://your-nanoanalyzer.onrender.com or https://nanoanalyzer.io)
+        - For Android Emulator connected to XAMPP on localhost: Use http://10.0.2.2/nanoanalyzer/
+        - For Physical Android Device on same Wi-Fi: Use http://YOUR_PC_IP_ADDRESS/nanoanalyzer/
+    -->
+    <string name="web_url">https://nanoanalyzer.onrender.com/</string>
+
+    <!-- Network Error & UI Strings -->
+    <string name="error_title">Connection Error</string>
+    <string name="error_message">Unable to connect to the NanoAnalyzer server. Please check your internet connection and try again.</string>
+    <string name="btn_retry">Try Again</string>
+    <string name="loading">Loading NanoAnalyzer…</string>
+    <string name="file_chooser_title">Select file to upload</string>
+    <string name="exit_prompt">Press back again to exit NanoAnalyzer</string>
+</resources>

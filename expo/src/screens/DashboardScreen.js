@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, RefreshControl, Dimensions, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, RefreshControl, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, PieChart } from 'react-native-chart-kit';
 import { COLORS } from '../constants/theme';
@@ -7,10 +7,12 @@ import Header from '../components/Header';
 import StatCard from '../components/StatCard';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import api from '../services/api';
+import { getSession, clearSession } from '../services/authService';
 
 const screenWidth = Dimensions.get('window').width - 32;
 
 export default function DashboardScreen({ navigation }) {
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [metrics, setMetrics] = useState({
@@ -24,6 +26,36 @@ export default function DashboardScreen({ navigation }) {
     uptake_vs_size: [],
     material_distribution: [],
   });
+
+  const loadUser = async () => {
+    try {
+      const u = await getSession();
+      if (u) {
+        setCurrentUser(u);
+      }
+    } catch (e) {}
+  };
+
+  const handleAccountAction = () => {
+    Alert.alert(
+      'Account Session',
+      `Logged in as:\n${currentUser?.name || currentUser?.full_name || 'Researcher'}\n(${currentUser?.email || 'Active Account'})`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out / Switch Account',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.logout();
+            } catch (e) {}
+            await clearSession();
+            navigation.replace('Login');
+          },
+        },
+      ]
+    );
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -42,6 +74,7 @@ export default function DashboardScreen({ navigation }) {
   };
 
   useEffect(() => {
+    loadUser();
     fetchDashboardData();
   }, []);
 
@@ -79,7 +112,9 @@ export default function DashboardScreen({ navigation }) {
     <View style={styles.container}>
       <Header
         title="Research Dashboard"
-        subtitle="Biophysical Simulation Summary"
+        subtitle={currentUser?.name ? `Researcher: ${currentUser.name}` : "Biophysical Simulation Summary"}
+        leftIcon="person-circle-outline"
+        onLeftPress={handleAccountAction}
         rightIcon="chatbubbles"
         onRightPress={() => navigation.navigate('AIAssistant')}
       />
@@ -102,6 +137,21 @@ export default function DashboardScreen({ navigation }) {
             <Text style={styles.actionSubtitle}>Predict uptake %, cytotoxicity & delivery score</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={COLORS.cyan} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionBanner, { borderColor: 'rgba(59, 130, 246, 0.3)', marginBottom: 12 }]}
+          onPress={() => navigation.navigate('Visualizations')}
+          activeOpacity={0.85}
+        >
+          <View style={[styles.actionIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.15)', borderColor: 'rgba(59, 130, 246, 0.3)', borderWidth: 1 }]}>
+            <Ionicons name="stats-chart" size={22} color={COLORS.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.actionTitle}>Advanced Visualizations</Text>
+            <Text style={styles.actionSubtitle}>4 Interactive biophysical charts & analytics</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
         </TouchableOpacity>
 
         <TouchableOpacity

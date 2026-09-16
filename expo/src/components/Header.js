@@ -3,13 +3,17 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 
-export default function Header({ title, showBack = false, onBack, rightIcon, onRightPress, subtitle }) {
+export default function Header({ title, showBack = false, onBack, leftIcon, onLeftPress, rightIcon, onRightPress, subtitle }) {
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
         {showBack ? (
           <TouchableOpacity onPress={onBack} style={styles.iconButton}>
             <Ionicons name="chevron-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+        ) : leftIcon && onLeftPress ? (
+          <TouchableOpacity onPress={onLeftPress} style={styles.iconButton}>
+            <Ionicons name={leftIcon} size={22} color={COLORS.cyan} />
           </TouchableOpacity>
         ) : (
           <View style={styles.brandBadge}>

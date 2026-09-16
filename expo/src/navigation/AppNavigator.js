@@ -9,6 +9,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import OTPVerificationScreen from '../screens/OTPVerificationScreen';
 import BottomTabNavigator from './BottomTabNavigator';
+import VisualizationScreen from '../screens/VisualizationScreen';
 import DatasetScreen from '../screens/DatasetScreen';
 import ReportsScreen from '../screens/ReportsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
@@ -48,6 +49,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Main" component={BottomTabNavigator} />
 
         {/* Modal / Secondary Stack Screens */}
+        <Stack.Screen name="Visualizations" component={VisualizationScreen} />
         <Stack.Screen name="DatasetManager" component={DatasetScreen} />
         <Stack.Screen name="Reports" component={ReportsScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />

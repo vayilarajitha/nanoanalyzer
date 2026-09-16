@@ -11,14 +11,9 @@ export default function SplashScreen({ navigation }) {
 
   const checkAuthSession = async () => {
     try {
-      // Small timeout for splash display
-      await new Promise(r => setTimeout(r, 1600));
-      const user = await getSession();
-      if (user && user.id) {
-        navigation.replace('Main');
-      } else {
-        navigation.replace('Login');
-      }
+      // Small timeout for splash animation
+      await new Promise(r => setTimeout(r, 1200));
+      navigation.replace('Login');
     } catch (e) {
       navigation.replace('Login');
     }

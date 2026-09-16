@@ -9,20 +9,26 @@ import CustomButton from '../components/CustomButton';
 import api from '../services/api';
 
 export default function NewAnalysisScreen({ navigation }) {
-  const [analysisName, setAnalysisName] = useState('Uptake Simulation Run');
-  const [material, setMaterial] = useState(CORE_MATERIALS[0]);
-  const [shape, setShape] = useState(NANOPARTICLE_TYPES[0]);
-  const [sizeNm, setSizeNm] = useState('45');
-  const [chargeMv, setChargeMv] = useState('20');
-  const [cellType, setCellType] = useState(CELL_LINES[0]);
-  const [exposureTime, setExposureTime] = useState('6.0');
-  const [concentration, setConcentration] = useState('50');
+  const [analysisName, setAnalysisName] = useState('');
+  const [material, setMaterial] = useState('');
+  const [shape, setShape] = useState('');
+  const [sizeNm, setSizeNm] = useState('');
+  const [chargeMv, setChargeMv] = useState('');
+  const [cellType, setCellType] = useState('');
+  const [exposureTime, setExposureTime] = useState('');
+  const [concentration, setConcentration] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleRunAnalysis = async () => {
     setError('');
+    const cleanName = analysisName.trim();
+    if (!cleanName || !material || !shape || !cellType || !sizeNm.trim() || !chargeMv.trim() || !exposureTime.trim() || !concentration.trim()) {
+      setError('All parameter fields are required. Please enter valid values without leaving any blank.');
+      return;
+    }
+
     const size = parseFloat(sizeNm);
     const charge = parseFloat(chargeMv);
     const expTime = parseFloat(exposureTime);
@@ -51,7 +57,7 @@ export default function NewAnalysisScreen({ navigation }) {
     setLoading(true);
     try {
       const payload = {
-        analysis_name: analysisName.trim() || 'Uptake Simulation Run',
+        analysis_name: cleanName,
         core_material: material,
         nanoparticle_type: shape,
         nanoparticle_size: size,
@@ -138,7 +144,7 @@ export default function NewAnalysisScreen({ navigation }) {
             <View style={styles.inputRow}>
               <CustomInput
                 label="Particle Size (nm)"
-                placeholder="45"
+                placeholder="e.g. 45"
                 icon="resize-outline"
                 value={sizeNm}
                 onChangeText={setSizeNm}
@@ -149,7 +155,7 @@ export default function NewAnalysisScreen({ navigation }) {
               <View style={{ width: 12 }} />
               <CustomInput
                 label="Surface Charge (mV)"
-                placeholder="20"
+                placeholder="e.g. 20"
                 icon="flash-outline"
                 value={chargeMv}
                 onChangeText={setChargeMv}
@@ -180,7 +186,7 @@ export default function NewAnalysisScreen({ navigation }) {
             <View style={styles.inputRow}>
               <CustomInput
                 label="Exposure Time (hours)"
-                placeholder="6.0"
+                placeholder="e.g. 6.0"
                 icon="time-outline"
                 value={exposureTime}
                 onChangeText={setExposureTime}
@@ -191,7 +197,7 @@ export default function NewAnalysisScreen({ navigation }) {
               <View style={{ width: 12 }} />
               <CustomInput
                 label="Concentration (μg/mL)"
-                placeholder="50"
+                placeholder="e.g. 50"
                 icon="flask-outline"
                 value={concentration}
                 onChangeText={setConcentration}

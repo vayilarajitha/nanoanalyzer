@@ -5,6 +5,7 @@ import { COLORS } from '../constants/theme';
 
 import DashboardScreen from '../screens/DashboardScreen';
 import NewAnalysisScreen from '../screens/NewAnalysisScreen';
+import VisualizationScreen from '../screens/VisualizationScreen';
 import DatasetScreen from '../screens/DatasetScreen';
 import ResultsScreen from '../screens/ResultsScreen';
 import HistoryScreen from '../screens/HistoryScreen';
@@ -21,14 +22,14 @@ export default function BottomTabNavigator() {
           backgroundColor: COLORS.surface,
           borderTopColor: COLORS.border,
           borderTopWidth: 1,
-          height: 60,
+          height: 62,
           paddingBottom: 8,
           paddingTop: 6,
         },
         tabBarActiveTintColor: COLORS.cyan,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
         },
         tabBarIcon: ({ focused, color, size }) => {
@@ -38,6 +39,8 @@ export default function BottomTabNavigator() {
             iconName = focused ? 'grid' : 'grid-outline';
           } else if (route.name === 'New Analysis') {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
+          } else if (route.name === 'Visualizations') {
+            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
           } else if (route.name === 'Datasets') {
             iconName = focused ? 'server' : 'server-outline';
           } else if (route.name === 'Results') {
@@ -48,12 +51,13 @@ export default function BottomTabNavigator() {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={22} color={color} />;
+          return <Ionicons name={iconName} size={20} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="New Analysis" component={NewAnalysisScreen} />
+      <Tab.Screen name="Visualizations" component={VisualizationScreen} />
       <Tab.Screen name="Datasets" component={DatasetScreen} />
       <Tab.Screen name="Results" component={ResultsScreen} />
       <Tab.Screen name="History" component={HistoryScreen} />

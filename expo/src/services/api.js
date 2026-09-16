@@ -92,6 +92,27 @@ export const api = {
     return res.data;
   },
 
+  // Analytics & Visualizations
+  getAnalytics: async () => {
+    try {
+      const res = await apiClient.get('/api/analytics.php');
+      return res.data;
+    } catch (e) {
+      try {
+        const fallback = await apiClient.get('/ajax/get_chart_data.php');
+        return fallback.data;
+      } catch (err) {
+        return {
+          status: 'success',
+          uptake_vs_size: [],
+          material_distribution: [],
+          toxicity_by_material: [],
+          cell_line_uptake: [],
+        };
+      }
+    }
+  },
+
   // Prediction / Analysis
   runAnalysis: async (params) => {
     const res = await apiClient.post('/api/predict.php', params);
