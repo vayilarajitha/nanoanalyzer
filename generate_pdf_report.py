@@ -11,7 +11,7 @@ from reportlab.platypus import (
 )
 from reportlab.pdfgen import canvas
 
-from qa_data_p4 import TEST_CASES, REAL_BENCHMARKS
+from qa_data_p5 import TEST_CASES, REAL_BENCHMARKS
 
 class NumberedCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):

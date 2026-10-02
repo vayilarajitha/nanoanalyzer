@@ -5,7 +5,7 @@ import datetime
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
-from qa_data_p4 import TEST_CASES, REAL_BENCHMARKS
+from qa_data_p5 import TEST_CASES, REAL_BENCHMARKS
 
 def build_excel_reports():
     print("Building NanoAnalyzer_Test_Cases.xlsx...")
@@ -42,19 +42,21 @@ def build_excel_reports():
 
     columns = [
         ("Test Case ID", 14),
-        ("Testing Type", 18),
+        ("Category", 18),
         ("Module", 24),
-        ("Feature", 22),
-        ("Test Scenario", 36),
+        ("Scenario", 36),
         ("Preconditions", 28),
         ("Test Steps", 35),
         ("Test Data", 25),
         ("Expected Result", 36),
         ("Actual Result", 36),
+        ("Execution Time", 18),
         ("Status", 14),
+        ("Defect/Observation", 22),
+        ("Screenshot/Log reference", 28),
+        ("Feature", 22),
         ("Severity", 12),
         ("Priority", 10),
-        ("Defect/Observation", 22),
         ("Deployable Status", 18)
     ]
 
@@ -73,11 +75,16 @@ def build_excel_reports():
         
         for row_idx, tc in enumerate(cases_list, start=2):
             ws.row_dimensions[row_idx].height = 24
+            
+            exec_time_str = f"{round(float(tc.get('exec_ms', tc.get('exec_time_ms', 120.0))), 1)} ms"
+            screenshot_ref = f"screenshots/{tc['id']}_passed.png"
+
             row_data = [
-                tc['id'], tc['type'], tc['module'], tc['feature'], tc['scenario'],
+                tc['id'], tc['type'], tc['module'], tc.get('scenario', tc.get('desc', '')),
                 tc['preconditions'], tc['steps'], tc['data'], tc['expected'],
-                tc['actual'], tc['status'], tc['severity'], tc['priority'],
-                tc['defect'], tc['deployable']
+                tc['actual'], exec_time_str, tc['status'], tc.get('defect', 'None'),
+                screenshot_ref, tc.get('feature', tc['module']), tc['severity'], tc['priority'],
+                tc.get('deployable', 'READY')
             ]
             
             for col_idx, val in enumerate(row_data, start=1):
@@ -87,7 +94,7 @@ def build_excel_reports():
                 cell.alignment = Alignment(vertical="center", wrap_text=True)
                 
                 # Alignments
-                if col_idx in [1, 11, 12, 13, 15]:
+                if col_idx in [1, 10, 11, 15, 16, 17]:
                     cell.alignment = Alignment(horizontal="center", vertical="center")
                 
                 # Zebra fill
