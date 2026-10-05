@@ -39,15 +39,18 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: 3. Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: 3. Verify Android Environment & ADB
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}" >> $GITHUB_ENV
+          echo "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platform-tools" >> $GITHUB_PATH
+          echo "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          adb version || true
 
       - name: 4. Set up Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: "BrainBattleAppium/package-lock.json"
 
       - name: 5. Install Appium Server and UiAutomator2 Driver
         run: |
@@ -57,29 +60,29 @@ jobs:
       - name: 6. Install Project & Test Dependencies
         run: |
           cd BrainBattleAppium
-          npm ci || npm install
+          npm install
 
       - name: 7. Build Debug APK
         run: |
-          echo "Checking for Android build scripts..."
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleDebug --no-daemon
-          elif [ -d "android" ] && [ -f "android/gradlew" ]; then
-            chmod +x android/gradlew
-            (cd android && ./gradlew assembleDebug --no-daemon)
-          else
-            echo "No root Gradle wrapper detected. Checking for existing APK..."
-          fi
+          echo "Building debug APK with Gradle..."
+          chmod +x ./gradlew || true
+          ./gradlew assembleDebug --no-daemon || true
 
-          # Locate or set APK_PATH
-          FOUND_APK=$(find . -name "*debug*.apk" -o -name "*.apk" | head -n 1 || true)
-          if [ -n "$FOUND_APK" ] && [ -f "$FOUND_APK" ]; then
-            echo "APK_PATH=$(realpath "$FOUND_APK")" >> $GITHUB_ENV
-            echo "Found APK: $FOUND_APK"
+          if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            echo "APK_PATH=$(pwd)/android/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_ENV
+            echo "Found debug APK at android/app/build/outputs/apk/debug/app-debug.apk"
+          elif [ -f "android/app/release/app-release.apk" ]; then
+            echo "APK_PATH=$(pwd)/android/app/release/app-release.apk" >> $GITHUB_ENV
+            echo "Using existing APK at android/app/release/app-release.apk"
           else
-            echo "No APK found. Appium tests will execute against system / web capabilities."
-            echo "APK_PATH=" >> $GITHUB_ENV
+            FOUND_APK=$(find . -name "*.apk" | head -n 1 || true)
+            if [ -n "$FOUND_APK" ] && [ -f "$FOUND_APK" ]; then
+              echo "APK_PATH=$(realpath "$FOUND_APK")" >> $GITHUB_ENV
+              echo "Found APK: $FOUND_APK"
+            else
+              echo "No APK found. Appium tests will execute against system capabilities."
+              echo "APK_PATH=" >> $GITHUB_ENV
+            fi
           fi
 
       - name: 8. Enable KVM Hardware Acceleration

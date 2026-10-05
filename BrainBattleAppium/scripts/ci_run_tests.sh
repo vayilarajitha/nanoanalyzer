@@ -57,9 +57,17 @@ APPIUM_LOG="/tmp/appium.log"
 mkdir -p "$(dirname "$APPIUM_LOG")"
 touch "$APPIUM_LOG"
 
-appium --log-level warn > "$APPIUM_LOG" 2>&1 &
+if command -v appium > /dev/null 2>&1; then
+  APPIUM_BIN="appium"
+elif [ -f "/usr/local/bin/appium" ]; then
+  APPIUM_BIN="/usr/local/bin/appium"
+else
+  APPIUM_BIN="npx appium"
+fi
+
+$APPIUM_BIN --base-path / --log-level warn > "$APPIUM_LOG" 2>&1 &
 APPIUM_PID=$!
-echo "Appium server process spawned (PID: ${APPIUM_PID}). Logs: ${APPIUM_LOG}"
+echo "Appium server process spawned using ${APPIUM_BIN} (PID: ${APPIUM_PID}). Logs: ${APPIUM_LOG}"
 
 # 4. Wait for Appium readiness on port 4723 using curl
 echo "Waiting for Appium server to become ready on http://127.0.0.1:4723/status..."
