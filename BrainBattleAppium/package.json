@@ -1,0 +1,31 @@
+{
+  "name": "brain-battle-appium",
+  "version": "1.0.0",
+  "description": "Mobile Appium E2E Automation Pipeline with 1,111 Mega Test Suite",
+  "main": "wdio.conf.js",
+  "scripts": {
+    "test": "wdio run wdio.conf.js",
+    "test:ci": "bash scripts/ci_run_tests.sh",
+    "generate:reports": "node -e \"require('./utils/generateHtmlReport')(); require('./utils/generateSummary')();\""
+  },
+  "keywords": [
+    "appium",
+    "webdriverio",
+    "android",
+    "e2e",
+    "testing",
+    "exceljs"
+  ],
+  "author": "QA Automation Team",
+  "license": "MIT",
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "@wdio/cli": "^8.39.0",
+    "@wdio/local-runner": "^8.39.0",
+    "@wdio/mocha-framework": "^8.39.0",
+    "@wdio/spec-reporter": "^8.39.0",
+    "webdriverio": "^8.39.0"
+  }
+}

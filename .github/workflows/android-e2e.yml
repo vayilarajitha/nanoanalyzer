@@ -1,0 +1,149 @@
+name: Mobile Appium E2E Automation Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - "**"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android-appium-e2e:
+    name: Android Emulator (API 29 Nexus 6) & Appium 1,111 Mega Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 2. Set up Java Environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: 3. Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 4. Set up Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "BrainBattleAppium/package-lock.json"
+
+      - name: 5. Install Appium Server and UiAutomator2 Driver
+        run: |
+          npm install -g appium@latest
+          appium driver install uiautomator2
+
+      - name: 6. Install Project & Test Dependencies
+        run: |
+          cd BrainBattleAppium
+          npm ci || npm install
+
+      - name: 7. Build Debug APK
+        run: |
+          echo "Checking for Android build scripts..."
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --no-daemon
+          elif [ -d "android" ] && [ -f "android/gradlew" ]; then
+            chmod +x android/gradlew
+            (cd android && ./gradlew assembleDebug --no-daemon)
+          else
+            echo "No root Gradle wrapper detected. Checking for existing APK..."
+          fi
+
+          # Locate or set APK_PATH
+          FOUND_APK=$(find . -name "*debug*.apk" -o -name "*.apk" | head -n 1 || true)
+          if [ -n "$FOUND_APK" ] && [ -f "$FOUND_APK" ]; then
+            echo "APK_PATH=$(realpath "$FOUND_APK")" >> $GITHUB_ENV
+            echo "Found APK: $FOUND_APK"
+          else
+            echo "No APK found. Appium tests will execute against system / web capabilities."
+            echo "APK_PATH=" >> $GITHUB_ENV
+          fi
+
+      - name: 8. Enable KVM Hardware Acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm || true
+
+      - name: 9. Run Appium Tests inside Android Emulator (API 29 Nexus 6)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: default
+          arch: x86_64
+          profile: Nexus 6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: bash BrainBattleAppium/scripts/ci_run_tests.sh
+
+      - name: 10. Prepare Artifacts and GitHub Pages Reports Directory
+        if: always()
+        run: |
+          mkdir -p gh-pages-reports/reports/latest
+          mkdir -p gh-pages-reports/reports/history/build-${{ github.run_number }}
+
+          if [ -d "BrainBattleAppium/reports" ]; then
+            cp -r BrainBattleAppium/reports/* gh-pages-reports/reports/latest/ 2>/dev/null || true
+            cp -r BrainBattleAppium/reports/* gh-pages-reports/reports/history/build-${{ github.run_number }}/ 2>/dev/null || true
+          fi
+
+          # Copy logs and raw results into artifacts folder
+          mkdir -p artifacts/
+          cp -r BrainBattleAppium/reports/* artifacts/ 2>/dev/null || true
+          cp BrainBattleAppium/.wdio-results.jsonl artifacts/ 2>/dev/null || true
+          cp /tmp/appium.log artifacts/ 2>/dev/null || true
+
+      - name: 11. Upload Excel and HTML Test Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: appium-e2e-test-reports
+          path: |
+            BrainBattleAppium/reports/execution-report.xlsx
+            BrainBattleAppium/reports/execution-report.html
+            artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: 12. Upload Appium Server Logs & Diagnostics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: appium-server-logs
+          path: |
+            /tmp/appium.log
+            BrainBattleAppium/.wdio-results.jsonl
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: 13. Deploy Test Reports to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        if: always() && github.ref == 'refs/heads/main'
+        with:
+          folder: gh-pages-reports
+          target-folder: ""
+          clean: false

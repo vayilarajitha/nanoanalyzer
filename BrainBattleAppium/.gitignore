@@ -1,0 +1,8 @@
+node_modules/
+.wdio-results.jsonl
+reports/*.xlsx
+reports/*.html
+reports/*.md
+reports/screenshots/
+__pycache__/
+*.log
