@@ -61,7 +61,7 @@ function generateSummary(customResults = null, outputPath = null) {
   const isCompleteSuccess = total > 0 && failed === 0 && blocked === 0;
 
   let md = '';
-  md += `## 🚀 Brain Battle Mobile Appium E2E Automation - Run Summary\n\n`;
+  md += `## 🚀 PerioTwin Android App (Appium) - E2E Automation Run Summary\n\n`;
   md += `**Status:** ${isCompleteSuccess ? '✅ **PASSED (100% Success)**' : '❌ **FAILED OR INCOMPLETE**'}\n\n`;
   md += `### 📊 High-Level Metrics\n\n`;
   md += `| Metric | Count | Percentage |\n`;
@@ -87,7 +87,7 @@ function generateSummary(customResults = null, outputPath = null) {
     md += `| **${cat}** | ${cTotal} | ${cPassed} | ${cFailed} | ${cRate} | ${cDur} |\n`;
   });
 
-  md += `\n---\n*Report generated on ${new Date().toISOString()} via Brain Battle Appium E2E Automation Pipeline*\n`;
+  md += `\n---\n*Report generated on ${new Date().toISOString()} via PerioTwinAppium E2E Automation Pipeline*\n`;
 
   fs.appendFileSync(summaryFile, md, 'utf8');
   console.log(`[GenerateSummary] Summary written to: ${summaryFile}`);

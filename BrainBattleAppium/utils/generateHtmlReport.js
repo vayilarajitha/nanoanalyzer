@@ -76,7 +76,7 @@ function generateHtmlReport(customResults = null, outputPath = null) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brain Battle Appium E2E Automation - Execution Report</title>
+  <title>PerioTwin Android App (Appium) - Execution Report</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -379,7 +379,7 @@ function generateHtmlReport(customResults = null, outputPath = null) {
   <div class="container">
     <header>
       <div class="header-left">
-        <h1>Brain Battle Mobile Appium Automation</h1>
+        <h1>PerioTwin Android App (Appium)</h1>
         <p>1,111 Mega Test Suite Execution Report &bull; Android Emulator Pipeline</p>
       </div>
       <div class="badge-live">
@@ -465,7 +465,7 @@ function generateHtmlReport(customResults = null, outputPath = null) {
     </div>
 
     <footer>
-      Brain Battle Mobile Appium E2E Automation Pipeline &bull; Automated CI Execution &bull; Android API 29 Nexus 6
+      PerioTwin Android App &bull; Appium E2E Automation Pipeline &bull; Automated CI Execution &bull; Android API 29 Nexus 6
     </footer>
   </div>
 

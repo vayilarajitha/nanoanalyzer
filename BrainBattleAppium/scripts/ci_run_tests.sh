@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Brain Battle Appium E2E Automation - CI Execution Script
+# PerioTwin Android App Appium E2E Automation - CI Execution Script
 # ==============================================================================
 
 set -o pipefail
@@ -11,7 +11,7 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_DIR}" || exit 1
 
 echo "=============================================================================="
-echo "🚀 Starting Brain Battle Mobile Appium E2E CI Pipeline"
+echo "🚀 Starting PerioTwin Android App Mobile Appium E2E CI Pipeline"
 echo "Project Directory: ${PROJECT_DIR}"
 echo "Current Time: $(date -u)"
 echo "=============================================================================="

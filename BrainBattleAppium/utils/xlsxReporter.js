@@ -64,7 +64,7 @@ class XlsxReporter {
     }
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Brain Battle Appium Automation';
+    workbook.creator = 'PerioTwinAppium Automation';
     workbook.created = this.startTime || new Date();
     workbook.modified = this.endTime;
 
@@ -113,7 +113,7 @@ class XlsxReporter {
     // Title banner
     summarySheet.mergeCells('B2:C2');
     const titleCell = summarySheet.getCell('B2');
-    titleCell.value = 'Brain Battle Mobile Appium E2E Automation - Summary';
+    titleCell.value = 'PerioTwin Android App - Appium E2E Automation - Summary';
     titleCell.font = { name: 'Calibri', size: 16, bold: true, color: { argb: 'FF1F4E79' } };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
     summarySheet.getRow(2).height = 35;
