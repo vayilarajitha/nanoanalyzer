@@ -1,0 +1,22 @@
+Metric,Value,Unit
+Scenario,Scenario A: Baseline Test,
+Timestamp,2026-10-08 21:19:26,
+Duration,31.16,seconds
+Total Requests,1740,requests
+Successful Requests,1740,requests
+Failed Requests,0,requests
+Throughput (RPS),57.2,req/sec
+Success Rate,100.0,%
+Error Rate,0.0,%
+Avg Response Time,24.44,ms
+Min Response Time,0.0,ms
+Max Response Time,183.35,ms
+P50 / Median,7.98,ms
+P90,65.59,ms
+P95,74.86,ms
+P99,107.7,ms
+Throughput Rate,1736.17,KB/sec
+HTTP 200 OK,1740,responses
+HTTP 4xx,0,responses
+HTTP 5xx,0,responses
+Connection/Timeout Errors,0,errors

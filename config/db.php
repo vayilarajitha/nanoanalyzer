@@ -100,8 +100,11 @@ if (!function_exists('parse_pg_url')) {
     }
 }
 
+// Optional: Explicitly configure SQLite mode (useful for local development, offline, and load testing)
+$is_force_sqlite = (strtolower((string)env('DB_CONNECTION')) === 'sqlite' || strtolower((string)env('USE_SQLITE')) === 'true');
+
 // 1. Resolve unified PostgreSQL connection URL (standard on Render / Supabase / Railway)
-$db_url = env('DATABASE_URL') ?: env('SUPABASE_DB_URL') ?: env('SUPABASE_DATABASE_URL') ?: env('POSTGRES_URL') ?: env('POSTGRESQL_URL');
+$db_url = !$is_force_sqlite ? (env('DATABASE_URL') ?: env('SUPABASE_DB_URL') ?: env('SUPABASE_DATABASE_URL') ?: env('POSTGRES_URL') ?: env('POSTGRESQL_URL')) : '';
 
 $db_host = '';
 $db_port = '';
@@ -110,7 +113,7 @@ $db_user = '';
 $db_pass = '';
 $sslmode = 'require';
 
-if (!empty($db_url)) {
+if (!empty($db_url) && !$is_force_sqlite) {
     $parsed_db = parse_pg_url($db_url);
     if ($parsed_db !== false) {
         $db_host = $parsed_db['host'] ?? '';
@@ -123,7 +126,7 @@ if (!empty($db_url)) {
 }
 
 // 2. Discrete environment variables fallback
-if (empty($db_host)) {
+if (empty($db_host) && !$is_force_sqlite) {
     $db_host = env('SUPABASE_DB_HOST') ?: env('DB_HOST') ?: env('POSTGRES_HOST') ?: env('PGHOST') ?: '';
 }
 if (empty($db_port)) {

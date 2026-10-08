@@ -1,0 +1,65 @@
+{
+  "scenario": "Scenario A: Baseline Test",
+  "timestamp": "2026-10-08 21:19:26",
+  "wall_duration_seconds": 31.16,
+  "total_requests": 1740,
+  "successful_requests": 1740,
+  "failed_requests": 0,
+  "requests_per_second": 57.2,
+  "success_rate_percent": 100.0,
+  "error_rate_percent": 0.0,
+  "response_time_ms": {
+    "avg": 24.44,
+    "min": 0.0,
+    "max": 183.35,
+    "p50": 7.98,
+    "p90": 65.59,
+    "p95": 74.86,
+    "p99": 107.7
+  },
+  "throughput": {
+    "requests_per_sec": 57.2,
+    "received_kb_per_sec": 1736.17,
+    "total_bytes_received": 54080880
+  },
+  "http_status_codes": {
+    "200_OK": 1740,
+    "2xx_Total": 1740,
+    "4xx_Client_Errors": 0,
+    "5xx_Server_Errors": 0,
+    "Other_Errors": 0
+  },
+  "connection_errors_or_timeouts": 0,
+  "operations_breakdown": {
+    "Health Check": {
+      "avg_ms": 1.33,
+      "p95_ms": 2.66,
+      "min_ms": 0.0,
+      "max_ms": 5.88
+    },
+    "User Authentication": {
+      "avg_ms": 64.57,
+      "p95_ms": 83.81,
+      "min_ms": 49.41,
+      "max_ms": 120.83
+    },
+    "Datasets Retrieval": {
+      "avg_ms": 10.82,
+      "p95_ms": 41.47,
+      "min_ms": 0.65,
+      "max_ms": 91.49
+    },
+    "Prediction Simulation": {
+      "avg_ms": 37.08,
+      "p95_ms": 88.7,
+      "min_ms": 5.56,
+      "max_ms": 183.35
+    },
+    "Result Retrieval": {
+      "avg_ms": 8.38,
+      "p95_ms": 30.67,
+      "min_ms": 0.31,
+      "max_ms": 65.59
+    }
+  }
+}

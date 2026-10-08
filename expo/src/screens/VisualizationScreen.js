@@ -97,7 +97,7 @@ export default function VisualizationScreen({ navigation }) {
       <Header
         title="Visualizations"
         subtitle="Advanced Analytics & Biophysical Charts"
-        rightIcon="arrow-clockwise"
+        rightIcon="refresh"
         onRightPress={onRefresh}
       />
 

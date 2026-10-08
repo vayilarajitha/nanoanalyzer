@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NanoAnalyzer Load Testing Performance Report</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-heading: #f0f6fc;
+      --primary: #58a6ff;
+      --success: #3fb950;
+      --danger: #f85149;
+      --warning: #d29922;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    h1 { color: var(--text-heading); font-size: 26px; }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-pass { background: rgba(63, 185, 80, 0.15); color: var(--success); border: 1px solid var(--success); }
+    .badge-fail { background: rgba(248, 81, 73, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      font-size: 16px;
+      color: var(--text-heading);
+    }
+    .grid-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      text-align: center;
+    }
+    .kpi-title { font-size: 12px; text-transform: uppercase; color: #8b949e; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .kpi-value { font-size: 26px; font-weight: 700; color: var(--text-heading); }
+    .kpi-unit { font-size: 13px; color: var(--primary); margin-left: 4px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { background: #1f242c; color: var(--text-heading); font-size: 13px; }
+    td { font-size: 14px; }
+    tr:last-child td { border-bottom: none; }
+    .section-title {
+      color: var(--text-heading);
+      font-size: 18px;
+      margin: 25px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 12px;
+      color: #8b949e;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>NanoAnalyzer Load Testing Performance Report</h1>
+        <p style="color: #8b949e; font-size: 14px;">Executed on 2026-10-08 21:20:33 &bull; Tool: Grafana k6</p>
+      </div>
+      <div>
+        <span class="badge badge-fail">Status: FAIL</span>
+      </div>
+    </header>
+
+    <div class="summary-card">
+      <strong>Executive Summary:</strong> NanoAnalyzer was load tested with 100 concurrent virtual users for 1 minute. The test generated <strong>2986</strong> total requests with an average throughput of <strong>48.21 requests/sec</strong>. The average response time was <strong>848.86 ms</strong> and the P95 response time was <strong>3037.58 ms</strong>. The overall error rate was <strong>0.0%</strong>. Based on the predefined thresholds, the test status was <strong>FAIL</strong>.
+    </div>
+
+    <div class="grid-kpis">
+      <div class="kpi-card">
+        <div class="kpi-title">Total Requests</div>
+        <div class="kpi-value">2986</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Throughput</div>
+        <div class="kpi-value">48.21<span class="kpi-unit">RPS</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Avg Response Time</div>
+        <div class="kpi-value">848.86<span class="kpi-unit">ms</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">P95 Response Time</div>
+        <div class="kpi-value">3037.58<span class="kpi-unit">ms</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Error Rate</div>
+        <div class="kpi-value" style="color: var(--success);">0.0<span class="kpi-unit">%</span></div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Test Results Comparison</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Scenario A: Baseline (5 VUs)</th>
+          <th>Scenario B: Load Test (100 VUs)</th>
+          <th>Unit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Total Requests</td><td><strong>1740</strong></td><td><strong>2986</strong></td><td>requests</td></tr>
+        <tr><td>Successful Requests</td><td>1740</td><td>2986</td><td>requests</td></tr>
+        <tr><td>Failed Requests</td><td>0</td><td>0</td><td>requests</td></tr>
+        <tr><td>Requests Per Second (RPS)</td><td><strong>57.2</strong></td><td><strong>48.21</strong></td><td>req/sec</td></tr>
+        <tr><td>Success Rate</td><td>100.0%</td><td>100.0%</td><td>%</td></tr>
+        <tr><td>Error Rate</td><td>0.0%</td><td>0.0%</td><td>%</td></tr>
+        <tr><td>Average Response Time</td><td>24.44</td><td>848.86</td><td>ms</td></tr>
+        <tr><td>Minimum Response Time</td><td>0.0</td><td>0.0</td><td>ms</td></tr>
+        <tr><td>Maximum Response Time</td><td>183.35</td><td>39529.32</td><td>ms</td></tr>
+        <tr><td>Median / P50</td><td>7.98</td><td>140.05</td><td>ms</td></tr>
+        <tr><td>P90</td><td>65.59</td><td>777.14</td><td>ms</td></tr>
+        <tr><td>P95</td><td><strong>74.86</strong></td><td><strong>3037.58</strong></td><td>ms</td></tr>
+        <tr><td>P99</td><td>107.7</td><td>17410.27</td><td>ms</td></tr>
+        <tr><td>Network Transfer</td><td>1736.17</td><td>5128.62</td><td>KB/sec</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">HTTP Status Code Distribution</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>HTTP Code Category</th>
+          <th>Baseline Count</th>
+          <th>Load Test Count</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>200 OK</td><td>1740</td><td>2986</td><td style="color:var(--success);">Normal</td></tr>
+        <tr><td>4xx Client Error</td><td>0</td><td>0</td><td>None</td></tr>
+        <tr><td>5xx Server Error</td><td>0</td><td>0</td><td style="color:var(--success);">Zero (0)</td></tr>
+        <tr><td>Connection / Timeouts</td><td>0</td><td>0</td><td style="color:var(--success);">Zero (0)</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Acceptance Criteria Evaluation</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Criterion</th>
+          <th>Target Threshold</th>
+          <th>Actual Observed</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Error Rate</td><td>&le; 1.0%</td><td>0.0%</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>P95 Latency</td><td>&le; 1000.0 ms</td><td>3037.58 ms</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>HTTP 5xx Server Errors</td><td>0</td><td>0</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>Connection Timeouts</td><td>0</td><td>0</td><td><span class="badge badge-pass">PASS</span></td></tr>
+      </tbody>
+    </table>
+
+    <footer>
+      NanoAnalyzer Performance &amp; Load Testing Suite &bull; Automated execution via Grafana k6
+    </footer>
+  </div>
+</body>
+</html>

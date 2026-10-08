@@ -1,0 +1,22 @@
+Metric,Value,Unit
+Scenario,"Scenario B: Load Test (100 VUs, 1 min)",
+Timestamp,2026-10-08 21:20:33,
+Duration,62.73,seconds
+Total Requests,2986,requests
+Successful Requests,2986,requests
+Failed Requests,0,requests
+Throughput (RPS),48.21,req/sec
+Success Rate,100.0,%
+Error Rate,0.0,%
+Avg Response Time,848.86,ms
+Min Response Time,0.0,ms
+Max Response Time,39529.32,ms
+P50 / Median,140.05,ms
+P90,777.14,ms
+P95,3037.58,ms
+P99,17410.27,ms
+Throughput Rate,5128.62,KB/sec
+HTTP 200 OK,2986,responses
+HTTP 4xx,0,responses
+HTTP 5xx,0,responses
+Connection/Timeout Errors,0,errors

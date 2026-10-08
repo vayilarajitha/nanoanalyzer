@@ -1,0 +1,35 @@
+{
+  "baseUrl": "http://localhost/nanoanalyzer",
+  "auth": {
+    "email": "alex@nanoanalyzer.io",
+    "password": "researcher123"
+  },
+  "endpoints": {
+    "health": "/api/health.php",
+    "auth": "/api/auth.php",
+    "datasets": "/api/datasets.php",
+    "predict": "/api/predict.php",
+    "results": "/api/results.php"
+  },
+  "thresholds": {
+    "error_rate_max_percent": 1.0,
+    "p95_response_time_max_ms": 1000.0,
+    "max_5xx_errors": 0
+  },
+  "scenarios": {
+    "baseline": {
+      "vus": 5,
+      "duration": "30s"
+    },
+    "load": {
+      "targetVUs": 100,
+      "duration": "1m",
+      "rampUpStages": [
+        { "duration": "15s", "target": 25 },
+        { "duration": "15s", "target": 75 },
+        { "duration": "15s", "target": 100 },
+        { "duration": "15s", "target": 0 }
+      ]
+    }
+  }
+}

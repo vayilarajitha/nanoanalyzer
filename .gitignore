@@ -21,3 +21,4 @@ android/.gradle/
 monitor_gha.py
 check_job_steps.py
 get_job_log.py
+k6.exe

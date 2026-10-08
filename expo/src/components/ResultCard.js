@@ -23,7 +23,7 @@ export default function ResultCard({ result }) {
           <Text style={styles.dateText}>{result.created_at_formatted || 'Recent Analysis'}</Text>
         </View>
         <View style={styles.confidenceBadge}>
-          <Ionicons name="checkmark-seal-sharp" size={14} color={COLORS.cyan} />
+          <Ionicons name="checkmark-circle" size={14} color={COLORS.cyan} />
           <Text style={styles.confidenceText}>{confidence}% Conf.</Text>
         </View>
       </View>
