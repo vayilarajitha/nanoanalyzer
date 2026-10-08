@@ -1,6 +1,9 @@
 const fs = require('fs');
-
-const content = fs.readFileSync('BrainBattleAppium/tests/12_e2e/mega_android_1100.test.js', 'utf8');
+const path = require('path');
+const testFile = fs.existsSync(path.join(__dirname, 'tests/12_e2e/mega_android_1100.test.js'))
+  ? path.join(__dirname, 'tests/12_e2e/mega_android_1100.test.js')
+  : (fs.existsSync('NanoAnalyzer/tests/12_e2e/mega_android_1100.test.js') ? 'NanoAnalyzer/tests/12_e2e/mega_android_1100.test.js' : 'BrainBattleAppium/tests/12_e2e/mega_android_1100.test.js');
+const content = fs.readFileSync(testFile, 'utf8');
 
 // Match all describe('Category: ...')
 const catMatches = [...content.matchAll(/describe\('Category: ([^']+)'/g)].map(m => m[1]);

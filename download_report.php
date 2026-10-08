@@ -5,7 +5,9 @@ require_login();
 $type = $_GET['type'] ?? '';
 
 if ($type === 'appium_excel') {
-    $filePath = __DIR__ . '/BrainBattleAppium/reports/execution-report.xlsx';
+    $filePath = file_exists(__DIR__ . '/NanoAnalyzer/reports/execution-report.xlsx')
+        ? __DIR__ . '/NanoAnalyzer/reports/execution-report.xlsx'
+        : __DIR__ . '/BrainBattleAppium/reports/execution-report.xlsx';
     $downloadName = 'PerioTwin_Android_Appium_Test_Report_1111_PASS.xlsx';
 
     if (!file_exists($filePath)) {

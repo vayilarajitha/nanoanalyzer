@@ -59,7 +59,7 @@ jobs:
 
       - name: 6. Install Project & Test Dependencies
         run: |
-          cd BrainBattleAppium
+          cd NanoAnalyzer
           npm install
 
       - name: 7. Build Debug APK
@@ -101,7 +101,7 @@ jobs:
           profile: Nexus 6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: bash BrainBattleAppium/scripts/ci_run_tests.sh
+          script: bash NanoAnalyzer/scripts/ci_run_tests.sh
 
       - name: 10. Prepare Artifacts and GitHub Pages Reports Directory
         if: always()
@@ -109,15 +109,15 @@ jobs:
           mkdir -p gh-pages-reports/reports/latest
           mkdir -p gh-pages-reports/reports/history/build-${{ github.run_number }}
 
-          if [ -d "BrainBattleAppium/reports" ]; then
-            cp -r BrainBattleAppium/reports/* gh-pages-reports/reports/latest/ 2>/dev/null || true
-            cp -r BrainBattleAppium/reports/* gh-pages-reports/reports/history/build-${{ github.run_number }}/ 2>/dev/null || true
+          if [ -d "NanoAnalyzer/reports" ]; then
+            cp -r NanoAnalyzer/reports/* gh-pages-reports/reports/latest/ 2>/dev/null || true
+            cp -r NanoAnalyzer/reports/* gh-pages-reports/reports/history/build-${{ github.run_number }}/ 2>/dev/null || true
           fi
 
           # Copy logs and raw results into artifacts folder
           mkdir -p artifacts/
-          cp -r BrainBattleAppium/reports/* artifacts/ 2>/dev/null || true
-          cp BrainBattleAppium/.wdio-results.jsonl artifacts/ 2>/dev/null || true
+          cp -r NanoAnalyzer/reports/* artifacts/ 2>/dev/null || true
+          cp NanoAnalyzer/.wdio-results.jsonl artifacts/ 2>/dev/null || true
           cp /tmp/appium.log artifacts/ 2>/dev/null || true
 
       - name: 11. Upload Excel and HTML Test Reports
@@ -126,8 +126,8 @@ jobs:
         with:
           name: appium-e2e-test-reports
           path: |
-            BrainBattleAppium/reports/execution-report.xlsx
-            BrainBattleAppium/reports/execution-report.html
+            NanoAnalyzer/reports/execution-report.xlsx
+            NanoAnalyzer/reports/execution-report.html
             artifacts/
           if-no-files-found: warn
           retention-days: 30
@@ -139,7 +139,7 @@ jobs:
           name: appium-server-logs
           path: |
             /tmp/appium.log
-            BrainBattleAppium/.wdio-results.jsonl
+            NanoAnalyzer/.wdio-results.jsonl
           if-no-files-found: ignore
           retention-days: 14
 

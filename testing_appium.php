@@ -168,7 +168,7 @@ include __DIR__ . '/includes/header.php';
         
         <!-- Action Buttons -->
         <div class="d-flex flex-wrap gap-2">
-          <a href="BrainBattleAppium/reports/execution-report.html" target="_blank" class="btn btn-glow-cyan">
+          <a href="NanoAnalyzer/reports/execution-report.html" target="_blank" class="btn btn-glow-cyan">
             <i class="bi bi-file-earmark-code me-1"></i> View HTML Report
           </a>
           <a href="download_report.php?type=appium_excel" class="btn btn-glow-primary">
@@ -304,7 +304,7 @@ include __DIR__ . '/includes/header.php';
                   </tr>
                   <tr>
                     <td class="text-muted">Test Suite Location</td>
-                    <td class="font-monospace text-cyan small">BrainBattleAppium/tests/12_e2e/mega_android_1100.test.js</td>
+                    <td class="font-monospace text-cyan small">NanoAnalyzer/tests/12_e2e/mega_android_1100.test.js</td>
                   </tr>
                   <tr>
                     <td class="text-muted">Generated Artifacts</td>
@@ -358,7 +358,7 @@ include __DIR__ . '/includes/header.php';
             </div>
 
             <div class="d-grid gap-2">
-              <a href="BrainBattleAppium/reports/execution-report.html" target="_blank" class="btn btn-glow-cyan text-center">
+              <a href="NanoAnalyzer/reports/execution-report.html" target="_blank" class="btn btn-glow-cyan text-center">
                 <i class="bi bi-eye-fill me-1"></i> Inspect Full 1,111 Test Rows
               </a>
               <a href="download_report.php?type=appium_excel" class="btn btn-glass text-center">
