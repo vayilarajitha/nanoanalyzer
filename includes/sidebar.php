@@ -66,19 +66,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
       </a>
     </li>
 
-    <li class="nav-heading">Quality & Testing</li>
-    <li>
-      <a href="testing_selenium.php" class="nav-link <?php echo $current_page == 'testing_selenium.php' ? 'active' : ''; ?>">
-        <i class="bi bi-browser-chrome"></i>
-        <span>Web App (Selenium)</span>
-      </a>
-    </li>
-    <li>
-      <a href="testing_appium.php" class="nav-link <?php echo $current_page == 'testing_appium.php' ? 'active' : ''; ?>">
-        <i class="bi bi-phone"></i>
-        <span>Android App (Appium)</span>
-      </a>
-    </li>
 
     <li class="nav-heading">Account & System</li>
     <li>
