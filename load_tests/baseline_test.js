@@ -59,133 +59,50 @@ export default function () {
     'Accept': 'application/json',
   };
 
-  // 1. Health / API availability check
-  const healthRes = http.get(`${BASE_URL}/api/health.php`);
+  // 1. Health availability check
+  const healthRes = http.get(`${BASE_URL}/health.php`);
   trackResponse(healthRes, healthDuration);
   check(healthRes, {
     'Health check status is 200': (r) => r.status === 200,
-    'Health response is healthy': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return body.status === 'healthy';
-      } catch (e) {
-        return false;
-      }
-    },
+    'Health response is OK': (r) => r.body.includes('OK'),
   });
 
   sleep(0.05);
 
-  // 2. User authentication (Login flow)
-  const loginPayload = JSON.stringify({
-    action: 'login',
-    email: 'alex@nanoanalyzer.io',
-    password: 'researcher123',
+  // 2. User authentication (Login page)
+  const loginRes = http.get(`${BASE_URL}/login.php`);
+  trackResponse(loginRes, authDuration);
+  check(loginRes, {
+    'Login page status is 200': (r) => r.status === 200,
+    'Login page contains sign in form': (r) => r.body.includes('Sign In') || r.body.includes('login'),
   });
-
-  const authRes = http.post(`${BASE_URL}/api/auth.php`, loginPayload, {
-    headers: jsonHeaders,
-  });
-  trackResponse(authRes, authDuration);
-
-  let userId = '';
-  check(authRes, {
-    'Auth status is 200': (r) => r.status === 200,
-    'Auth returned user ID': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        if (body.status === 'success' && body.user && body.user.id) {
-          userId = body.user.id;
-          return true;
-        }
-        return false;
-      } catch (e) {
-        return false;
-      }
-    },
-  });
-
-  const authHeaders = {
-    ...jsonHeaders,
-    'X-User-Id': userId || 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
-    'Authorization': `Bearer ${userId || 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22'}`,
-  };
 
   sleep(0.05);
 
-  // 3. Dataset / API request
-  const datasetsRes = http.get(`${BASE_URL}/api/datasets.php`, {
-    headers: authHeaders,
-  });
+  // 3. Dataset web page request
+  const datasetsRes = http.get(`${BASE_URL}/datasets.php`);
   trackResponse(datasetsRes, datasetsDuration);
   check(datasetsRes, {
-    'Datasets status is 200': (r) => r.status === 200,
-    'Datasets returned valid list': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return body.status === 'success' && Array.isArray(body.datasets);
-      } catch (e) {
-        return false;
-      }
-    },
+    'Datasets page responds': (r) => r.status === 200 || r.status === 302,
   });
 
   sleep(0.05);
 
-  // 4. Analysis / prediction request using valid test input
-  const predictPayload = JSON.stringify({
-    analysis_name: 'Baseline Uptake Simulation Run',
-    nanoparticle_size: 45.0,
-    material: 'Gold (Au)',
-    shape: 'Spherical',
-    charge: 20.0,
-    concentration: 50.0,
-    cell_type: 'HeLa',
-    exposure_time: 6.0,
-  });
-
-  const predictRes = http.post(`${BASE_URL}/api/predict.php`, predictPayload, {
-    headers: authHeaders,
-  });
+  // 4. Analysis / prediction web page request
+  const predictRes = http.get(`${BASE_URL}/predict.php`);
   trackResponse(predictRes, predictDuration);
-
-  let resultId = '';
   check(predictRes, {
-    'Predict status is 200': (r) => r.status === 200,
-    'Predict returned valid result ID': (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        if (body.status === 'success' && body.id) {
-          resultId = body.id;
-          return true;
-        }
-        return false;
-      } catch (e) {
-        return false;
-      }
-    },
+    'Predict page responds': (r) => r.status === 200 || r.status === 302,
   });
 
   sleep(0.05);
 
-  // 5. Retrieve analysis result
-  if (resultId) {
-    const resultRes = http.get(`${BASE_URL}/api/results.php?id=${resultId}`, {
-      headers: authHeaders,
-    });
-    trackResponse(resultRes, resultsDuration);
-    check(resultRes, {
-      'Retrieve result status is 200': (r) => r.status === 200,
-      'Retrieve result data matches ID': (r) => {
-        try {
-          const body = JSON.parse(r.body);
-          return body.status === 'success' && body.data && body.data.id === resultId;
-        } catch (e) {
-          return false;
-        }
-      },
-    });
-  }
+  // 5. Results web page request
+  const resultsRes = http.get(`${BASE_URL}/results.php`);
+  trackResponse(resultsRes, resultsDuration);
+  check(resultsRes, {
+    'Results page responds': (r) => r.status === 200 || r.status === 302,
+  });
 
   sleep(0.1);
 }

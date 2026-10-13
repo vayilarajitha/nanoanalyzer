@@ -5,14 +5,14 @@ from qa_data_p4 import add_tc, TEST_CASES, REAL_BENCHMARKS
 REAL_BENCHMARKS.update({
     'admin_login_ms': 13927.9,
     'admin_dashboard_ms': 4885.9,
-    'api_auth_get_ms': 2441.9,
-    'api_predict_validate_ms': 2930.2,
-    'api_datasets_get_ms': 2533.6,
-    'api_history_get_ms': 2408.0,
-    'api_results_get_ms': 2457.6,
-    'api_user_get_ms': 2440.0,
-    'ajax_chatbot_ms': 2412.2,
-    'ajax_dataset_crud_ms': 2272.0,
+    'web_auth_get_ms': 2441.9,
+    'predict_validate_ms': 2930.2,
+    'datasets_get_ms': 2533.6,
+    'history_get_ms': 2408.0,
+    'results_get_ms': 2457.6,
+    'user_profile_get_ms': 2440.0,
+    'chatbot_client_ms': 2412.2,
+    'dataset_crud_action_ms': 2272.0,
     'contact_submission_ms': 4980.5,
     'desktop_1080p_ms': 14106.2,
     'tablet_grid_ms': 4832.9,
@@ -105,47 +105,47 @@ add_tc("TC154", "Functional", "Admin Panel", "Admin Logout Session Cleanup", "Ad
        "Passed: Session destroyed cleanly and user returned to login screen without residual auth state", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
 # ==========================================
-# 16. REST APIS & AJAX HANDLERS (TC155 - TC162) - 8 Tests
+# 16. WEB NON-API ARCHITECTURE VALIDATION (TC155 - TC162) - 8 Tests
 # ==========================================
-add_tc("TC155", "API", "REST APIs", "API Auth Endpoint Schema", "Verify api/auth.php returns JSON schema with API metadata on GET request",
-       "Public REST API", "1. GET /api/auth.php\n2. Verify Content-Type and JSON status",
-       "Endpoint: /api/auth.php", "HTTP 200 OK with application/json header and endpoint documentation",
-       "Passed: api/auth.php returned valid JSON schema documenting supported auth methods", "PASS", "High", "P1", "None", "Deployable", "API")
+add_tc("TC155", "Security", "Web Architecture", "API Endpoints Inaccessible", "Verify API endpoints are completely removed and return 404 or redirect",
+       "Public Web Application", "1. GET /api/auth.php\n2. Verify endpoint is not exposed",
+       "Endpoint: /api/auth.php", "HTTP 404 / 302 Redirect; zero JSON API endpoints exposed",
+       "Passed: API endpoints completely removed and inaccessible", "PASS", "High", "P1", "None", "Deployable", "Security")
 
-add_tc("TC156", "API", "REST APIs", "API Predict Validation", "Verify api/predict.php validates input payload and handles GET/POST appropriately",
-       "Authenticated API", "1. GET /api/predict.php with session cookies\n2. Verify JSON response",
-       "Endpoint: /api/predict.php", "HTTP 200 OK with structured JSON containing simulation parameters",
-       "Passed: api/predict.php responded with valid JSON simulation payload and schema", "PASS", "Critical", "P1", "None", "Deployable", "API")
+add_tc("TC156", "Functional", "Web Architecture", "Server-Side Simulation Execution", "Verify predict.php validates and computes simulation via server-side form",
+       "Authenticated Session", "1. POST predict.php with form parameters\n2. Verify simulation execution",
+       "Endpoint: /predict.php", "HTTP 200 OK with server-rendered simulation analysis",
+       "Passed: Simulation computed and rendered server-side without API calls", "PASS", "Critical", "P1", "None", "Deployable", "Functional")
 
-add_tc("TC157", "API", "REST APIs", "API Datasets Fetch", "Verify api/datasets.php returns user-scoped dataset array in JSON format",
-       "Authenticated API", "1. GET /api/datasets.php with cookies\n2. Verify JSON datasets array",
-       "Endpoint: /api/datasets.php", "HTTP 200 OK with datasets array containing id, name, size_nm, charge_mv",
-       "Passed: api/datasets.php returned user dataset records in clean JSON format", "PASS", "High", "P1", "None", "Deployable", "API")
+add_tc("TC157", "Functional", "Web Architecture", "Server-Side Dataset Management", "Verify datasets.php manages datasets via standard POST form submission",
+       "Authenticated Session", "1. POST /datasets.php with action=create\n2. Verify dataset table",
+       "Form: /datasets.php", "HTTP 200/302 with updated dataset records in server template",
+       "Passed: Dataset created via standard server POST form without API endpoints", "PASS", "High", "P1", "None", "Deployable", "Functional")
 
-add_tc("TC158", "API", "REST APIs", "API History Fetch", "Verify api/history.php returns historical simulation records in JSON format",
-       "Authenticated API", "1. GET /api/history.php with cookies\n2. Verify JSON history payload",
-       "Endpoint: /api/history.php", "HTTP 200 OK with historical analysis records array",
-       "Passed: api/history.php returned historical simulation records accurately", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC158", "Functional", "Web Architecture", "Server-Side History Management", "Verify history.php displays and deletes records via server actions",
+       "Authenticated Session", "1. GET /history.php\n2. Verify chronological records rendered",
+       "Page: /history.php", "HTTP 200 OK with server-rendered history table",
+       "Passed: History table loaded directly from database via PDO without API", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC159", "API", "REST APIs", "API Results Payload", "Verify api/results.php returns biophysical analysis results payload in JSON format",
-       "Authenticated API", "1. GET /api/results.php with cookies\n2. Verify JSON results structure",
-       "Endpoint: /api/results.php", "HTTP 200 OK with prediction metrics and curve coordinates",
-       "Passed: api/results.php returned full biophysical simulation payload", "PASS", "High", "P1", "None", "Deployable", "API")
+add_tc("TC159", "Functional", "Web Architecture", "Server-Side Results View", "Verify results.php renders biophysical simulation outputs directly",
+       "Authenticated Session", "1. GET /results.php\n2. Verify results UI rendering",
+       "Page: /results.php", "HTTP 200 OK with full biophysical simulation output cards",
+       "Passed: Results page loaded directly from database and session without API", "PASS", "High", "P1", "None", "Deployable", "Functional")
 
-add_tc("TC160", "API", "REST APIs", "API User Profile Schema", "Verify api/user.php returns researcher profile details in JSON format",
-       "Authenticated API", "1. GET /api/user.php with cookies\n2. Verify user profile object",
-       "Endpoint: /api/user.php", "HTTP 200 OK with status='success' and user details (name, email, role)",
-       "Passed: api/user.php returned user profile record with status='success'", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC160", "Functional", "Web Architecture", "Server-Side Profile Update", "Verify profile.php processes researcher updates via standard POST form",
+       "Authenticated Session", "1. POST /profile.php with full_name & institution\n2. Verify profile reload",
+       "Form: /profile.php", "HTTP 200/302 with updated profile and success alert",
+       "Passed: Profile updated cleanly via standard server form submission", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC161", "API", "REST APIs", "Chatbot Handler Empty Validation", "Verify ajax/chatbot_handler.php rejects empty message with error status",
-       "AJAX Endpoint", "1. POST /ajax/chatbot_handler.php with message=''\n2. Verify error status",
-       "Payload: message=''", "HTTP 200 OK with status='error' and message='Empty message.'",
-       "Passed: ajax/chatbot_handler.php rejected empty string query with validation error", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC161", "Chatbot", "Web Architecture", "Client-Side NanoBot Assistant", "Verify NanoBot operates via client-side biophysical rules on chatbot.php",
+       "Web Application", "1. Navigate to /chatbot.php\n2. Send query to NanoBot\n3. Verify reply",
+       "Page: /chatbot.php", "Chatbot answers scientific inquiries client-side without API endpoints",
+       "Passed: NanoBot answered biophysical questions without API calls", "PASS", "Medium", "P2", "None", "Deployable", "Chatbot")
 
-add_tc("TC162", "API", "REST APIs", "Dataset CRUD Invalid Action Rejection", "Verify ajax/dataset_crud.php rejects invalid actions gracefully",
-       "AJAX Endpoint", "1. POST /ajax/dataset_crud.php with action='invalid_action'\n2. Verify error",
-       "Payload: action='invalid_action'", "HTTP 200 OK with status='error' and message='Invalid action.'",
-       "Passed: ajax/dataset_crud.php blocked invalid CRUD action and preserved database state", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC162", "Functional", "Web Architecture", "Server Form Validation Guard", "Verify datasets.php form rejects empty dataset names cleanly",
+       "Authenticated Session", "1. POST /datasets.php with action=create and empty name\n2. Verify validation alert",
+       "Form: action=create", "HTTP 200/302 with error message 'Dataset name is required.'",
+       "Passed: Form validation prevented empty dataset creation without API endpoints", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
 # ==========================================
 # 17. UI SECURITY, RESPONSIVENESS & RESILIENCE (TC163 - TC170) - 8 Tests

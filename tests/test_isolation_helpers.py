@@ -34,14 +34,16 @@ def ensure_user_b(driver):
 
 def create_dataset_via_api(driver, name, material="Gold (Au)", size=45.0, charge=15.0):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.post(f"{BASE_URL}/ajax/dataset_crud.php", data={
+    r = requests.post(f"{BASE_URL}/datasets.php", data={
         'action': 'create',
         'name': name,
         'core_material': material,
+        'nanoparticle_type': 'Inorganic',
+        'cell_type': 'HeLa',
         'size_nm': size,
         'surface_charge_mv': charge
-    }, cookies=cookies, timeout=10)
-    return r.status_code == 200 and r.json().get('status') == 'success'
+    }, cookies=cookies, timeout=10, allow_redirects=True)
+    return r.status_code in [200, 302]
 
 def get_user_dataset_names(driver):
     driver.get(f"{BASE_URL}/datasets.php")

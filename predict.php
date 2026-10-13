@@ -7,14 +7,14 @@ $user_id = get_current_user_id();
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $analysis_name = trim($_POST['analysis_name'] ?? '');
-    $core_material = trim($_POST['core_material'] ?? '');
-    $np_type = trim($_POST['nanoparticle_type'] ?? '');
-    $size_nm = isset($_POST['size_nm']) && $_POST['size_nm'] !== '' ? floatval($_POST['size_nm']) : 0;
-    $charge_mv = isset($_POST['surface_charge_mv']) && $_POST['surface_charge_mv'] !== '' ? floatval($_POST['surface_charge_mv']) : 0;
+    $analysis_name = trim($_POST['analysis_name'] ?? $_POST['name'] ?? '');
+    $core_material = trim($_POST['core_material'] ?? $_POST['material'] ?? '');
+    $np_type = trim($_POST['nanoparticle_type'] ?? $_POST['shape'] ?? 'Inorganic');
+    $size_nm = isset($_POST['size_nm']) && $_POST['size_nm'] !== '' ? floatval($_POST['size_nm']) : (isset($_POST['nanoparticle_size']) ? floatval($_POST['nanoparticle_size']) : 0);
+    $charge_mv = isset($_POST['surface_charge_mv']) && $_POST['surface_charge_mv'] !== '' ? floatval($_POST['surface_charge_mv']) : (isset($_POST['charge_mv']) ? floatval($_POST['charge_mv']) : (isset($_POST['charge']) ? floatval($_POST['charge']) : 0));
     $cell_type = trim($_POST['cell_type'] ?? '');
-    $exposure_time = isset($_POST['exposure_time_h']) && $_POST['exposure_time_h'] !== '' ? floatval($_POST['exposure_time_h']) : 0;
-    $dose_ug_ml = isset($_POST['concentration_ug_ml']) && $_POST['concentration_ug_ml'] !== '' ? floatval($_POST['concentration_ug_ml']) : 0;
+    $exposure_time = isset($_POST['exposure_time_h']) && $_POST['exposure_time_h'] !== '' ? floatval($_POST['exposure_time_h']) : (isset($_POST['exposure_time']) ? floatval($_POST['exposure_time']) : 0);
+    $dose_ug_ml = isset($_POST['concentration_ug_ml']) && $_POST['concentration_ug_ml'] !== '' ? floatval($_POST['concentration_ug_ml']) : (isset($_POST['concentration']) ? floatval($_POST['concentration']) : 0);
 
     if (empty($analysis_name) || empty($core_material) || empty($np_type) || $size_nm <= 0 || empty($cell_type) || $exposure_time <= 0 || $dose_ug_ml <= 0) {
         $error = 'All parameter fields are required. Please enter valid values without leaving any blank.';

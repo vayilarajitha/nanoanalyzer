@@ -5,6 +5,68 @@ require_login();
 $page_title = 'Dataset Manager | NanoAnalyzer';
 $user_id = get_current_user_id();
 
+$flash_success = $_SESSION['flash_success'] ?? '';
+$flash_error = $_SESSION['flash_error'] ?? '';
+unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+
+// Handle Traditional Server-Side Form Submissions (Non-API)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'create') {
+        $name = trim($_POST['name'] ?? '');
+        $core_material = trim($_POST['core_material'] ?? $_POST['material'] ?? '');
+        $np_type = trim($_POST['nanoparticle_type'] ?? $_POST['type'] ?? $_POST['shape'] ?? 'Inorganic');
+        $size_nm = isset($_POST['size_nm']) && $_POST['size_nm'] !== '' ? floatval($_POST['size_nm']) : 0;
+        $charge_mv = isset($_POST['surface_charge_mv']) && $_POST['surface_charge_mv'] !== '' ? floatval($_POST['surface_charge_mv']) : (isset($_POST['charge_mv']) && $_POST['charge_mv'] !== '' ? floatval($_POST['charge_mv']) : 0);
+        $cell_type = trim($_POST['cell_type'] ?? '');
+        $uptake = isset($_POST['uptake_efficiency_percent']) && $_POST['uptake_efficiency_percent'] !== '' ? floatval($_POST['uptake_efficiency_percent']) : null;
+        $toxicity = isset($_POST['toxicity_score']) && $_POST['toxicity_score'] !== '' ? floatval($_POST['toxicity_score']) : null;
+        $notes = trim($_POST['notes'] ?? '');
+
+        if (!empty($name) && !empty($core_material) && !empty($cell_type)) {
+            if ($pdo instanceof PDO) {
+                try {
+                    $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+                        mt_rand(0, 0xffff),
+                        mt_rand(0, 0x0fff) | 0x4000,
+                        mt_rand(0, 0x3fff) | 0x8000,
+                        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+                    );
+                    $stmt = $pdo->prepare("INSERT INTO nanoparticle_datasets 
+                        (id, user_id, dataset_name, name, shape, nanoparticle_type, material, core_material, charge, surface_charge_mv, nanoparticle_size, size_nm, cell_type, uptake_efficiency_percent, toxicity_score, notes) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([
+                        $uuid, $user_id, $name, $name, $np_type, $np_type, $core_material, $core_material,
+                        $charge_mv, $charge_mv, $size_nm, $size_nm, $cell_type, $uptake, $toxicity, $notes
+                    ]);
+                    $_SESSION['flash_success'] = 'Dataset saved successfully to database.';
+                } catch (Throwable $e) {
+                    $_SESSION['flash_error'] = 'Failed to save dataset: ' . $e->getMessage();
+                }
+            }
+        } else {
+            $_SESSION['flash_error'] = 'Please fill out all required fields.';
+        }
+        header('Location: datasets.php');
+        exit;
+    } elseif ($action === 'delete') {
+        $id = trim($_POST['id'] ?? '');
+        if ($pdo instanceof PDO && !empty($id)) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM nanoparticle_datasets WHERE id = ? AND user_id = ?");
+                $stmt->execute([$id, $user_id]);
+                $_SESSION['flash_success'] = 'Dataset entry removed successfully.';
+            } catch (Throwable $e) {
+                $_SESSION['flash_error'] = 'Failed to delete dataset record.';
+            }
+        }
+        header('Location: datasets.php');
+        exit;
+    }
+}
+
 $datasets = [];
 if ($pdo instanceof PDO) {
     try {
@@ -62,6 +124,18 @@ include __DIR__ . '/includes/header.php';
         </div>
       </div>
 
+      <?php if (!empty($flash_success)): ?>
+        <div class="alert alert-success glass-panel text-white border-success mb-3">
+          <i class="bi bi-check-circle-fill me-1 text-success"></i> <?php echo htmlspecialchars($flash_success); ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if (!empty($flash_error)): ?>
+        <div class="alert alert-danger glass-panel text-white border-danger mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i> <?php echo htmlspecialchars($flash_error); ?>
+        </div>
+      <?php endif; ?>
+
       <div class="glass-panel p-4">
         <div class="table-responsive">
           <table class="table table-custom align-middle">
@@ -98,7 +172,11 @@ include __DIR__ . '/includes/header.php';
                     <td class="text-emerald fw-bold"><?php echo isset($row['uptake_efficiency_percent']) ? ($row['uptake_efficiency_percent'] . '%') : '—'; ?></td>
                     <td class="text-rose fw-bold"><?php echo isset($row['toxicity_score']) ? $row['toxicity_score'] : '—'; ?></td>
                     <td>
-                      <button onclick="deleteDataset('<?php echo $row['id']; ?>')" class="btn btn-sm btn-glass text-danger"><i class="bi bi-trash"></i></button>
+                      <form method="POST" action="datasets.php" style="display:inline;" onsubmit="return confirm('Delete this dataset entry?');">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                        <button type="submit" class="btn btn-sm btn-glass text-danger"><i class="bi bi-trash"></i></button>
+                      </form>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -121,7 +199,7 @@ include __DIR__ . '/includes/header.php';
         <h5 class="modal-title fw-bold parameter-value">Add Nanoparticle Dataset</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <form id="addDatasetForm">
+      <form id="addDatasetForm" method="POST" action="datasets.php">
         <div class="modal-body">
           <input type="hidden" name="action" value="create">
           <div class="mb-3">
@@ -188,45 +266,5 @@ include __DIR__ . '/includes/header.php';
     </div>
   </div>
 </div>
-
-<script>
-document.getElementById('addDatasetForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const formData = new FormData(this);
-  fetch('ajax/dataset_crud.php', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast(data.message, 'success');
-      setTimeout(() => location.reload(), 800);
-    } else {
-      showToast(data.message, 'error');
-    }
-  });
-});
-
-function deleteDataset(id) {
-  if (!confirm('Delete this dataset entry?')) return;
-  const formData = new FormData();
-  formData.append('action', 'delete');
-  formData.append('id', id);
-  fetch('ajax/dataset_crud.php', {
-    method: 'POST',
-    body: formData
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast(data.message, 'success');
-      location.reload();
-    } else {
-      showToast(data.message, 'error');
-    }
-  });
-}
-</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

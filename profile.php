@@ -5,6 +5,34 @@ require_login();
 $page_title = 'Researcher Profile | NanoAnalyzer';
 $user_id = get_current_user_id();
 
+$flash_success = $_SESSION['flash_success'] ?? '';
+$flash_error = $_SESSION['flash_error'] ?? '';
+unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+
+// Handle Traditional Server-Side Profile Update (Non-API)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $full_name = trim($_POST['full_name'] ?? '');
+    $institution = trim($_POST['institution'] ?? '');
+    $bio = trim($_POST['bio'] ?? '');
+
+    if (!empty($full_name) && !empty($institution)) {
+        if ($pdo instanceof PDO && !empty($user_id)) {
+            try {
+                $stmt = $pdo->prepare("UPDATE users SET name = ?, full_name = ?, institution = ?, bio = ? WHERE id = ?");
+                $stmt->execute([$full_name, $full_name, $institution, $bio, $user_id]);
+                $_SESSION['full_name'] = $full_name;
+                $_SESSION['flash_success'] = 'Profile details updated successfully.';
+            } catch (Throwable $e) {
+                $_SESSION['flash_error'] = 'Failed to update profile: ' . $e->getMessage();
+            }
+        }
+    } else {
+        $_SESSION['flash_error'] = 'Full Name and Institution cannot be empty.';
+    }
+    header('Location: profile.php');
+    exit;
+}
+
 $user = null;
 if ($pdo instanceof PDO) {
     try {
@@ -31,6 +59,18 @@ include __DIR__ . '/includes/header.php';
         <p class="text-muted mb-0">Manage your institution details and account information.</p>
       </div>
 
+      <?php if (!empty($flash_success)): ?>
+        <div class="alert alert-success glass-panel text-white border-success mb-3">
+          <i class="bi bi-check-circle-fill me-1 text-success"></i> <?php echo htmlspecialchars($flash_success); ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if (!empty($flash_error)): ?>
+        <div class="alert alert-danger glass-panel text-white border-danger mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i> <?php echo htmlspecialchars($flash_error); ?>
+        </div>
+      <?php endif; ?>
+
       <div class="row g-4">
         <div class="col-lg-4">
           <div class="glass-panel p-4 text-center">
@@ -46,7 +86,7 @@ include __DIR__ . '/includes/header.php';
         <div class="col-lg-8">
           <div class="glass-panel p-4">
             <h5 class="text-white fw-bold mb-3">Edit Details</h5>
-            <form id="profileForm">
+            <form id="profileForm" method="POST" action="profile.php">
               <div class="mb-3">
                 <label class="form-label">Full Name</label>
                 <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>" required>
@@ -68,22 +108,5 @@ include __DIR__ . '/includes/header.php';
     </div>
   </div>
 </div>
-
-<script>
-document.getElementById('profileForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  fetch('ajax/profile_handler.php', {
-    method: 'POST',
-    body: new FormData(this)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast(data.message, 'success');
-      setTimeout(() => location.reload(), 800);
-    }
-  });
-});
-</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

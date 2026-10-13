@@ -2,14 +2,14 @@
 require_once __DIR__ . '/config/db.php';
 require_login();
 
-$page_title = 'Web App (Selenium) | PerioTwin';
+$page_title = 'Web App (Selenium) | NanoAnalyzer';
 
 // Selenium Categories and Suite Breakdown
 $selenium_categories = [
     ['name' => 'Selenium E2E', 'count' => 98, 'passed' => 98, 'failed' => 0, 'icon' => 'bi-browser-chrome', 'color' => 'cyan'],
     ['name' => 'Functional', 'count' => 54, 'passed' => 54, 'failed' => 0, 'icon' => 'bi-check-circle', 'color' => 'primary'],
     ['name' => 'UI / UX', 'count' => 27, 'passed' => 27, 'failed' => 0, 'icon' => 'bi-window-desktop', 'color' => 'purple'],
-    ['name' => 'API Verification', 'count' => 19, 'passed' => 19, 'failed' => 0, 'icon' => 'bi-cloud-check', 'color' => 'cyan'],
+    ['name' => 'Web Engine Verification', 'count' => 19, 'passed' => 19, 'failed' => 0, 'icon' => 'bi-cloud-check', 'color' => 'cyan'],
     ['name' => 'Authentication', 'count' => 16, 'passed' => 16, 'failed' => 0, 'icon' => 'bi-shield-lock', 'color' => 'indigo'],
     ['name' => 'Validation Rules', 'count' => 15, 'passed' => 15, 'failed' => 0, 'icon' => 'bi-ui-checks', 'color' => 'emerald'],
     ['name' => 'Unit Tests', 'count' => 15, 'passed' => 15, 'failed' => 0, 'icon' => 'bi-code-square', 'color' => 'primary'],
@@ -156,7 +156,7 @@ include __DIR__ . '/includes/header.php';
           <?php
           $sheets = [
             'Test Summary', 'All Test Cases', 'Functional Testing', 'Selenium E2E', 'UI_UX Testing',
-            'Unit Testing', 'API Testing', 'Security Testing', 'Authentication', 'User Isolation',
+            'Unit Testing', 'Web Architecture', 'Security Testing', 'Authentication', 'User Isolation',
             'Analysis Testing', 'Dataset Testing', 'History Testing', 'Experiment Testing', 'Report Testing',
             'Chatbot Testing', 'Validation Testing', 'Error Handling', 'Performance', 'Defects', 'Deployment Status'
           ];

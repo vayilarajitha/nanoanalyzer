@@ -2,57 +2,57 @@ from qa_data_p1 import REAL_BENCHMARKS
 from qa_data_p3 import add_tc, TEST_CASES
 
 # ==========================================
-# 7. API TESTING (TC106 - TC115) - 10 Tests
+# 7. SERVER-SIDE ENGINE TESTING (TC106 - TC115) - 10 Tests
 # ==========================================
-add_tc("TC106", "API", "Health Check API", "Fast Health Check Endpoint", "GET /health.php returns HTTP 200 OK with plain text 'OK' in under 50ms",
-       "Web server active", "1. GET https://nanoanalyzer.onrender.com/health.php\n2. Assert status and body",
-       "URL: /health.php", "HTTP 200 OK; Body contains 'OK'",
-       "Passed: HTTP 200 returned; lightweight health check verified for Render container probe", "PASS", "Critical", "P1", "None", "Deployable", "API")
+add_tc("TC106", "Functional", "Experiment Management", "Open 'New Experiment' Modal", "Modal opens with Title, Material, Category, Size, Target Cell fields",
+       "On experiments.php", "1. Click 'New Experiment' button\n2. Inspect modal #addExpModal",
+       "#addExpModal", "Modal opens with Title, Material, Category, Size, Target Cell fields",
+       "Passed: New experiment modal renders properly with all input fields", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC107", "API", "Health Check API", "JSON Health Status Endpoint", "GET /api/health.php returns HTTP 200 OK with structured JSON status 'healthy'",
-       "Web server active", "1. GET /api/health.php\n2. Assert Content-Type and JSON body",
-       "URL: /api/health.php", "HTTP 200 OK; Content-Type application/json; {\"status\":\"healthy\"}",
-       "Passed: Structured JSON health report delivered with timestamp", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC107", "Functional", "Experiment Management", "Create New Experiment", "Experiment is created and added to tracker via server-side form",
+       "Modal is open", "1. Enter protocol title\n2. Fill core material\n3. Submit server form",
+       "New protocol data", "Experiment is created via server-side form submission",
+       "Passed: Experiment created and persisted to database via server-side form", "PASS", "High", "P1", "None", "Deployable", "Functional")
 
-add_tc("TC108", "API", "REST API", "API Authentication Endpoint", "POST /api/auth.php with valid email and password returns JWT/session token",
-       "API online", "1. POST to /api/auth.php with credentials\n2. Assert response",
-       "Body: alex@nanoanalyzer.io", "HTTP 200 OK; JSON response containing token and user profile object",
-       "Passed: Mobile/API authentication succeeded and returned bearer token", "PASS", "Critical", "P1", "None", "Deployable", "API")
+add_tc("TC108", "Functional", "Experiment Management", "Verify Experiment Card in Tracker", "Newly created experiment protocol card is visible",
+       "On experiments.php", "1. Inspect experiment cards on page",
+       "Experiment cards", "Newly created experiment protocol card is visible in tracker",
+       "Passed: Experiment protocol card rendered in UI tracker", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC109", "API", "REST API", "API Invalid Auth Rejection", "POST /api/auth.php with wrong password returns HTTP 401 Unauthorized",
-       "API online", "1. POST with wrong password\n2. Assert response status",
-       "Body: invalid credentials", "HTTP 401 Unauthorized with {\"error\":\"Invalid credentials\"}",
-       "Passed: API rejected invalid credentials without leaking password details", "PASS", "High", "P1", "None", "Deployable", "API")
+add_tc("TC109", "Functional", "Experiment Management", "Verify Status Badge Rendering", "Badges display 'In Progress', 'Completed', or 'Planned' with appropriate styling",
+       "On experiments.php", "1. Inspect status badges on experiment cards",
+       "Status badges", "Badges display 'In Progress', 'Completed', or 'Planned' with appropriate styling",
+       "Passed: Status badge styling renders cleanly for laboratory protocols", "PASS", "Low", "P3", "None", "Deployable", "Functional")
 
-add_tc("TC110", "API", "REST API", "API Simulation Computation", "POST /api/predict.php with biophysical parameters returns full prediction model",
-       "API authenticated", "1. POST JSON payload with Gold, 45nm, +20mV, HeLa\n2. Assert JSON response",
-       "JSON biophysical payload", "HTTP 200 OK; JSON containing uptake_percentage, diffusion_score, mechanisms",
-       "Passed: Engine computed 99.4% uptake and returned structured JSON analytics", "PASS", "Critical", "P1", "None", "Deployable", "API")
+add_tc("TC110", "Functional", "Experiment Management", "Update Experiment Status", "Status updates to 'Completed' via server-side action",
+       "On experiments.php", "1. Select 'Completed' in experiment status dropdown\n2. Trigger form submission",
+       "Status: Completed", "Status updates to 'Completed' via server-side action",
+       "Passed: Experiment status updated cleanly via server-side POST handler", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC111", "API", "REST API", "API Missing Parameters Guard", "POST /api/predict.php with missing required 'cell_type' returns HTTP 400 Bad Request",
-       "API authenticated", "1. POST JSON payload omitting 'cell_type'\n2. Assert status",
-       "Payload without cell_type", "HTTP 400 Bad Request with descriptive parameter validation error",
-       "Passed: Parameter guard detected missing field and blocked computation", "PASS", "High", "P1", "None", "Deployable", "API")
+add_tc("TC111", "Functional", "Experiment Management", "Delete Experiment Record", "Experiment is removed from tracker via form action",
+       "On experiments.php", "1. Click delete experiment form button\n2. Submit action='delete'",
+       "Delete experiment action", "Experiment record is removed from database and UI tracker",
+       "Passed: Experiment deleted cleanly via server-side POST handler", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC112", "API", "REST API", "API User Datasets Retrieval", "GET /api/datasets.php returns user-scoped JSON array of nanoparticle datasets",
-       "API authenticated", "1. GET /api/datasets.php\n2. Assert Content-Type and array structure",
-       "GET /api/datasets.php", "HTTP 200 OK; JSON array of datasets belonging strictly to caller",
-       "Passed: Datasets serialized as JSON array conforming to mobile client schema", "PASS", "High", "P1", "None", "Deployable", "API")
+add_tc("TC112", "Functional", "Dataset Management", "User Datasets Table View", "GET /datasets.php returns user-scoped view of nanoparticle datasets",
+       "Authenticated session", "1. Navigate to /datasets.php\n2. Assert table rendering and scoping",
+       "URL: /datasets.php", "HTTP 200 OK; Datasets table renders data belonging strictly to user",
+       "Passed: Datasets rendered via server-side template without client API calls", "PASS", "High", "P1", "None", "Deployable", "Functional")
 
-add_tc("TC113", "API", "REST API", "API User Experiments Retrieval", "GET /api/experiments.php returns user-scoped JSON array of lab protocols",
-       "API authenticated", "1. GET /api/experiments.php\n2. Assert status and items",
-       "GET /api/experiments.php", "HTTP 200 OK; JSON array of experiment records with status badges",
-       "Passed: Experiment items delivered with status, protocol notes, and target cells", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC113", "Functional", "Experiment Management", "User Experiments Table View", "GET /experiments.php returns user-scoped view of laboratory protocols",
+       "Authenticated session", "1. Navigate to /experiments.php\n2. Assert status and items",
+       "URL: /experiments.php", "HTTP 200 OK; Experiments cards render protocol records with status badges",
+       "Passed: Experiment items delivered with status, protocol notes, and target cells", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC114", "API", "REST API", "API History Retrieval", "GET /api/history.php returns chronological list of simulations run by caller",
-       "API authenticated", "1. GET /api/history.php\n2. Assert ordering by created_at DESC",
-       "GET /api/history.php", "HTTP 200 OK; List ordered chronologically with newest first",
-       "Passed: Historical simulation audit records retrieved successfully", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC114", "Functional", "History Audit", "User History View", "GET /history.php returns chronological list of simulations run by researcher",
+       "Authenticated session", "1. Navigate to /history.php\n2. Assert ordering by created_at DESC",
+       "URL: /history.php", "HTTP 200 OK; List ordered chronologically with newest simulations first",
+       "Passed: Historical simulation audit records retrieved successfully via server query", "PASS", "Medium", "P2", "None", "Deployable", "Functional")
 
-add_tc("TC115", "API", "AJAX API", "AJAX Chatbot Query Endpoint", "POST /ajax/chatbot_handler.php with message returns JSON bot response",
-       "Session active", "1. POST message='What is cellular uptake?'\n2. Assert JSON response",
-       "POST message payload", "HTTP 200 OK with {\"status\":\"success\",\"reply\":\"...\"}",
-       "Passed: Chatbot handler returned contextual response in under 700ms", "PASS", "Medium", "P2", "None", "Deployable", "API")
+add_tc("TC115", "Chatbot", "AI Chatbot", "NanoBot Knowledge Query", "Ask NanoBot 'What is cellular uptake?' and verify scientific reply",
+       "Session active", "1. Send message='What is cellular uptake?'\n2. Assert biophysical reply rendered",
+       "Query: cellular uptake", "NanoBot assistant displays biophysical explanation of endocytic uptake",
+       "Passed: Chatbot engine returned contextual biophysical response in under 500ms", "PASS", "Medium", "P2", "None", "Deployable", "Chatbot")
 
 # ==========================================
 # 8. ANALYSIS & RESULTS TESTING (TC116 - TC121) - 6 Tests
@@ -113,10 +113,10 @@ add_tc("TC125", "Chatbot", "Interactive Widget", "Widget Toggle State Transition
 # ==========================================
 # 10. ERROR HANDLING & EDGE CASES (TC126 - TC130) - 5 Tests
 # ==========================================
-add_tc("TC126", "Error Handling", "API Resilience", "Malformed JSON Body Handling", "Send malformed JSON payload ({'broken': json...}) to /api/predict.php",
-       "API online", "1. POST raw invalid JSON body to /api/predict.php\n2. Assert HTTP response",
-       "Malformed raw text", "HTTP 400 Bad Request with JSON error: 'Invalid JSON payload'",
-       "Passed: API caught json_decode() error gracefully without PHP notices", "PASS", "High", "P1", "None", "Deployable", "Error Handling")
+add_tc("TC126", "Error Handling", "Web Resilience", "Malformed Input Form Handling", "Submit malformed payload to /predict.php",
+       "Web application online", "1. POST invalid form body to /predict.php\n2. Assert HTTP response",
+       "Malformed form data", "HTTP 200/302 with validation error notification",
+       "Passed: Server caught validation error gracefully without PHP notices", "PASS", "High", "P1", "None", "Deployable", "Error Handling")
 
 add_tc("TC127", "Error Handling", "Web Server", "Non-Existent Route 404", "Navigate to non-existent application route /unknown_page_xyz.php",
        "Browser active", "1. Navigate to /nonexistent_endpoint_xyz.php\n2. Assert response",

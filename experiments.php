@@ -5,6 +5,74 @@ require_login();
 $page_title = 'Lab Experiments | NanoAnalyzer';
 $user_id = get_current_user_id();
 
+$flash_success = $_SESSION['flash_success'] ?? '';
+$flash_error = $_SESSION['flash_error'] ?? '';
+unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+
+// Handle Traditional Server-Side Form Submissions (Non-API)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'create') {
+        $title = trim($_POST['title'] ?? '');
+        $core_material = trim($_POST['core_material'] ?? $_POST['material'] ?? '');
+        $np_type = trim($_POST['nanoparticle_type'] ?? $_POST['category'] ?? 'General');
+        $size_nm = isset($_POST['particle_size_nm']) && $_POST['particle_size_nm'] !== '' ? floatval($_POST['particle_size_nm']) : (isset($_POST['particle_size']) && $_POST['particle_size'] !== '' ? floatval($_POST['particle_size']) : (isset($_POST['size_nm']) ? floatval($_POST['size_nm']) : 0));
+        $target_cell = trim($_POST['target_cell_line'] ?? $_POST['cell_line'] ?? $_POST['cell_type'] ?? '');
+        $desc = trim($_POST['description'] ?? '');
+
+        if (!empty($title) && !empty($core_material) && !empty($target_cell)) {
+            if ($pdo instanceof PDO) {
+                try {
+                    $uuid = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+                        mt_rand(0, 0xffff),
+                        mt_rand(0, 0x0fff) | 0x4000,
+                        mt_rand(0, 0x3fff) | 0x8000,
+                        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+                    );
+                    $stmt = $pdo->prepare("INSERT INTO experiments (id, user_id, title, description, nanoparticle_type, core_material, particle_size_nm, target_cell_line, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Planned')");
+                    $stmt->execute([$uuid, $user_id, $title, $desc, $np_type, $core_material, $size_nm, $target_cell]);
+                    $_SESSION['flash_success'] = 'Laboratory experiment protocol created successfully.';
+                } catch (Throwable $e) {
+                    $_SESSION['flash_error'] = 'Failed to create experiment protocol: ' . $e->getMessage();
+                }
+            }
+        } else {
+            $_SESSION['flash_error'] = 'Please fill out all required fields.';
+        }
+        header('Location: experiments.php');
+        exit;
+    } elseif ($action === 'update_status') {
+        $id = trim($_POST['id'] ?? '');
+        $status = trim($_POST['status'] ?? '');
+        if ($pdo instanceof PDO && !empty($id) && !empty($status)) {
+            try {
+                $stmt = $pdo->prepare("UPDATE experiments SET status = ? WHERE id = ? AND user_id = ?");
+                $stmt->execute([$status, $id, $user_id]);
+                $_SESSION['flash_success'] = 'Experiment status updated to ' . htmlspecialchars($status) . '.';
+            } catch (Throwable $e) {
+                $_SESSION['flash_error'] = 'Failed to update experiment status.';
+            }
+        }
+        header('Location: experiments.php');
+        exit;
+    } elseif ($action === 'delete') {
+        $id = trim($_POST['id'] ?? '');
+        if ($pdo instanceof PDO && !empty($id)) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM experiments WHERE id = ? AND user_id = ?");
+                $stmt->execute([$id, $user_id]);
+                $_SESSION['flash_success'] = 'Laboratory experiment removed successfully.';
+            } catch (Throwable $e) {
+                $_SESSION['flash_error'] = 'Failed to remove experiment.';
+            }
+        }
+        header('Location: experiments.php');
+        exit;
+    }
+}
+
 $experiments = [];
 if ($pdo instanceof PDO) {
     try {
@@ -34,6 +102,18 @@ include __DIR__ . '/includes/header.php';
         <button class="btn btn-glow-cyan" data-bs-toggle="modal" data-bs-target="#addExpModal"><i class="bi bi-plus-lg me-1"></i> New Experiment</button>
       </div>
 
+      <?php if (!empty($flash_success)): ?>
+        <div class="alert alert-success glass-panel text-white border-success mb-3">
+          <i class="bi bi-check-circle-fill me-1 text-success"></i> <?php echo htmlspecialchars($flash_success); ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if (!empty($flash_error)): ?>
+        <div class="alert alert-danger glass-panel text-white border-danger mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i> <?php echo htmlspecialchars($flash_error); ?>
+        </div>
+      <?php endif; ?>
+
       <div class="row g-4">
         <?php if (count($experiments) > 0): ?>
           <?php foreach ($experiments as $exp): ?>
@@ -57,13 +137,21 @@ include __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
-                  <select onchange="updateExpStatus('<?php echo $exp['id']; ?>', this.value)" class="form-select form-select-sm" style="width: auto;">
-                    <option value="Planned" <?php echo $exp['status'] === 'Planned' ? 'selected' : ''; ?>>Planned</option>
-                    <option value="In Progress" <?php echo $exp['status'] === 'In Progress' ? 'selected' : ''; ?>>In Progress</option>
-                    <option value="Completed" <?php echo $exp['status'] === 'Completed' ? 'selected' : ''; ?>>Completed</option>
-                    <option value="Archived" <?php echo $exp['status'] === 'Archived' ? 'selected' : ''; ?>>Archived</option>
-                  </select>
-                  <button onclick="deleteExperiment('<?php echo $exp['id']; ?>')" class="btn btn-sm btn-glass text-danger"><i class="bi bi-trash"></i></button>
+                  <form method="POST" action="experiments.php" style="display:inline;">
+                    <input type="hidden" name="action" value="update_status">
+                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($exp['id']); ?>">
+                    <select name="status" onchange="this.form.submit()" class="form-select form-select-sm" style="width: auto;">
+                      <option value="Planned" <?php echo $exp['status'] === 'Planned' ? 'selected' : ''; ?>>Planned</option>
+                      <option value="In Progress" <?php echo $exp['status'] === 'In Progress' ? 'selected' : ''; ?>>In Progress</option>
+                      <option value="Completed" <?php echo $exp['status'] === 'Completed' ? 'selected' : ''; ?>>Completed</option>
+                      <option value="Archived" <?php echo $exp['status'] === 'Archived' ? 'selected' : ''; ?>>Archived</option>
+                    </select>
+                  </form>
+                  <form method="POST" action="experiments.php" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this experiment?');">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($exp['id']); ?>">
+                    <button type="submit" class="btn btn-sm btn-glass text-danger"><i class="bi bi-trash"></i></button>
+                  </form>
                 </div>
               </div>
             </div>
@@ -84,7 +172,7 @@ include __DIR__ . '/includes/header.php';
         <h5 class="modal-title fw-bold">New Laboratory Protocol</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <form id="addExpForm">
+      <form id="addExpForm" method="POST" action="experiments.php">
         <div class="modal-body">
           <input type="hidden" name="action" value="create">
           <div class="mb-3">
@@ -122,58 +210,5 @@ include __DIR__ . '/includes/header.php';
     </div>
   </div>
 </div>
-
-<script>
-document.getElementById('addExpForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  fetch('ajax/experiment_crud.php', {
-    method: 'POST',
-    body: new FormData(this)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast(data.message, 'success');
-      setTimeout(() => location.reload(), 800);
-    } else {
-      showToast(data.message, 'error');
-    }
-  });
-});
-
-function updateExpStatus(id, status) {
-  fetch('ajax/experiment_crud.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ action: 'update_status', id: id, status: status })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast(data.message, 'success');
-    } else {
-      showToast(data.message, 'error');
-    }
-  });
-}
-
-function deleteExperiment(id) {
-  if (!confirm('Are you sure you want to delete this experiment?')) return;
-  fetch('ajax/experiment_crud.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ action: 'delete', id: id })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast(data.message, 'success');
-      location.reload();
-    } else {
-      showToast(data.message, 'error');
-    }
-  });
-}
-</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

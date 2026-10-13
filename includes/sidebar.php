@@ -60,7 +60,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
       </a>
     </li>
     <li>
-      <a href="javascript:void(0)" onclick="document.getElementById('chatbot-toggle-btn').click();" class="nav-link">
+      <a href="chatbot.php" class="nav-link <?php echo $current_page == 'chatbot.php' ? 'active' : ''; ?>">
         <i class="bi bi-robot"></i>
         <span>AI Assistant</span>
       </a>

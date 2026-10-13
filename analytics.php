@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/chart_helper.php';
 require_login();
 
 $page_title = 'Analytics & Visualizations | NanoAnalyzer';
+$user_id = get_current_user_id();
+$chart_data = get_chart_visualization_data($user_id, $pdo);
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -69,5 +72,9 @@ include __DIR__ . '/includes/header.php';
     </div>
   </div>
 </div>
+
+<script>
+window.nanoChartData = <?php echo json_encode($chart_data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

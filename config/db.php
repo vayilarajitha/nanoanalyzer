@@ -391,15 +391,6 @@ function is_admin() {
 
 function require_login() {
     if (!is_logged_in()) {
-        $is_api = (strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') !== false) ||
-                  (strpos($_SERVER['REQUEST_URI'] ?? '', '/ajax/') !== false) ||
-                  (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
-        if ($is_api) {
-            http_response_code(401);
-            header('Content-Type: application/json');
-            echo json_encode(['status' => 'error', 'message' => 'Unauthorized: Authentication required.']);
-            exit;
-        }
         header('Location: login.php');
         exit;
     }

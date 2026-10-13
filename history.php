@@ -5,6 +5,29 @@ require_login();
 $page_title = 'Analysis History | NanoAnalyzer';
 $user_id = get_current_user_id();
 
+$flash_success = $_SESSION['flash_success'] ?? '';
+$flash_error = $_SESSION['flash_error'] ?? '';
+unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+
+// Handle Traditional Server-Side Deletion (Non-API)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    if ($action === 'delete') {
+        $id = trim($_POST['id'] ?? '');
+        if ($pdo instanceof PDO && !empty($id)) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM analysis_results WHERE id = ? AND user_id = ?");
+                $stmt->execute([$id, $user_id]);
+                $_SESSION['flash_success'] = 'Simulation record removed from history.';
+            } catch (Throwable $e) {
+                $_SESSION['flash_error'] = 'Failed to remove simulation record.';
+            }
+        }
+        header('Location: history.php');
+        exit;
+    }
+}
+
 $history_rows = [];
 if ($pdo instanceof PDO) {
     try {
@@ -33,6 +56,18 @@ include __DIR__ . '/includes/header.php';
         </div>
         <a href="predict.php" class="btn btn-glow-cyan"><i class="bi bi-plus-lg me-1"></i> New Simulation</a>
       </div>
+
+      <?php if (!empty($flash_success)): ?>
+        <div class="alert alert-success glass-panel text-white border-success mb-3">
+          <i class="bi bi-check-circle-fill me-1 text-success"></i> <?php echo htmlspecialchars($flash_success); ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if (!empty($flash_error)): ?>
+        <div class="alert alert-danger glass-panel text-white border-danger mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i> <?php echo htmlspecialchars($flash_error); ?>
+        </div>
+      <?php endif; ?>
 
       <div class="glass-panel p-4">
         <div class="table-responsive">
@@ -64,7 +99,11 @@ include __DIR__ . '/includes/header.php';
                     <td class="text-cyan fw-bold"><?php echo $row['delivery_efficiency_score']; ?></td>
                     <td>
                       <a href="results.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-glass me-1"><i class="bi bi-eye"></i> View</a>
-                      <button onclick="deleteHistory('<?php echo $row['id']; ?>')" class="btn btn-sm btn-glass text-danger"><i class="bi bi-trash"></i></button>
+                      <form method="POST" action="history.php" style="display:inline;" onsubmit="return confirm('Are you sure you want to remove this record from your history?');">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id']); ?>">
+                        <button type="submit" class="btn btn-sm btn-glass text-danger"><i class="bi bi-trash"></i></button>
+                      </form>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -80,23 +119,5 @@ include __DIR__ . '/includes/header.php';
     </div>
   </div>
 </div>
-
-<script>
-function deleteHistory(id) {
-  if (!confirm('Are you sure you want to remove this record from your history?')) return;
-  fetch('ajax/history_handler.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ action: 'delete', id: id })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      showToast(data.message, 'success');
-      location.reload();
-    }
-  });
-}
-</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

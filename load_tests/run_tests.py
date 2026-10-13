@@ -27,16 +27,16 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 
 def check_preflight(base_url="http://localhost/nanoanalyzer"):
     print("[PRE-FLIGHT] Checking NanoAnalyzer availability...")
-    health_url = f"{base_url}/api/health.php"
+    health_url = f"{base_url}/health.php"
     try:
         req = urllib.request.Request(health_url)
         with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode())
-            if resp.status == 200 and data.get("status") == "healthy":
-                print(f"[PRE-FLIGHT] OK: NanoAnalyzer health endpoint responded: {data}")
+            content = resp.read().decode()
+            if resp.status == 200 and ("OK" in content or "healthy" in content):
+                print(f"[PRE-FLIGHT] OK: NanoAnalyzer health endpoint responded: {content.strip()}")
                 return True
             else:
-                print(f"[PRE-FLIGHT] WARNING: Health endpoint responded with code {resp.status}: {data}")
+                print(f"[PRE-FLIGHT] WARNING: Health endpoint responded with code {resp.status}: {content}")
                 return False
     except Exception as e:
         print(f"[PRE-FLIGHT] ERROR: Failed to reach NanoAnalyzer at {health_url}: {e}")

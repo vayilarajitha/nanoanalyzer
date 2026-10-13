@@ -45,14 +45,14 @@ add_tc("TC078", "Validation", "Input Validation", "Password Minimum Length", "Su
        "Password: 123", "Validation error: 'Password must be at least 6 characters'",
        "Passed: Form prevented weak password registration", "PASS", "High", "P1", "None", "Deployable", "Validation")
 
-add_tc("TC079", "Validation", "Input Validation", "Non-Existent Cell Line", "Submit unlisted cellular line string in custom API payload",
-       "API predict endpoint", "1. POST to api/predict.php with cell_type='AlienCells_99'\n2. Assert error",
-       "Cell: AlienCells_99", "HTTP 400 Bad Request: 'Invalid target cell line'",
-       "Passed: API validated cell line against whitelist of thermodynamic models", "PASS", "Medium", "P2", "None", "Deployable", "Validation")
+add_tc("TC079", "Validation", "Input Validation", "Non-Existent Cell Line", "Submit unlisted cellular line string in custom simulation payload",
+       "Simulation form", "1. POST to predict.php with cell_type='AlienCells_99'\n2. Assert validation",
+       "Cell: AlienCells_99", "Validation error or fallback to default cell line",
+       "Passed: Engine validated cell line against whitelist of thermodynamic models", "PASS", "Medium", "P2", "None", "Deployable", "Validation")
 
 add_tc("TC080", "Validation", "Input Validation", "Non-Existent Core Material", "Submit unlisted core material in custom simulation request",
-       "API predict endpoint", "1. POST with core_material='Unobtainium'\n2. Assert response",
-       "Material: Unobtainium", "HTTP 400 Bad Request: 'Unsupported core nanomaterial'",
+       "Simulation form", "1. POST with core_material='Unobtainium'\n2. Assert response",
+       "Material: Unobtainium", "Validation error or fallback to default core material",
        "Passed: Whitelist validation blocked uncalibrated physical material", "PASS", "Medium", "P2", "None", "Deployable", "Validation")
 
 add_tc("TC081", "Validation", "Input Validation", "Non-Numeric Size String", "Submit alphabetic string in numeric size input field",
@@ -103,12 +103,12 @@ add_tc("TC089", "User Isolation", "Access Control", "Direct URL Foreign Result A
        "Foreign Result UUID", "System denies access or displays clean empty state without leaking data",
        "Passed: Unauthorized result access blocked by user ownership check in query", "PASS", "Critical", "P1", "None", "Deployable", "User Isolation")
 
-add_tc("TC090", "User Isolation", "Access Control", "Direct API Foreign Dataset Query", "Send API request to api/datasets.php requesting dataset owned by another user",
-       "User B session active", "1. GET /api/datasets.php?id=<user_a_dataset_id>\n2. Assert HTTP status",
-       "Foreign Dataset UUID", "HTTP 403 Forbidden or 404 Not Found returned; no dataset leaked",
-       "Passed: REST API enforced user ownership boundaries on individual records", "PASS", "Critical", "P1", "None", "Deployable", "User Isolation")
+add_tc("TC090", "User Isolation", "Access Control", "Direct Foreign Dataset Query", "Attempt requesting dataset owned by another user via direct parameter",
+       "User B session active", "1. GET /datasets.php with foreign dataset context\n2. Assert scoping",
+       "Foreign Dataset UUID", "Clean empty state or scoped list; foreign dataset never leaked",
+       "Passed: Server-side query enforced user ownership boundaries on records", "PASS", "Critical", "P1", "None", "Deployable", "User Isolation")
 
-add_tc("TC091", "User Isolation", "Access Control", "Direct API Foreign Experiment Deletion", "Attempt deleting another user's experiment via POST ajax/experiment_crud.php",
+add_tc("TC091", "User Isolation", "Access Control", "Direct Foreign Experiment Deletion", "Attempt deleting another user's experiment via POST experiments.php action='delete'",
        "User B session active", "1. POST action=delete and id=<user_a_exp_id>\n2. Assert response",
        "Foreign Exp ID", "Request fails with error: 'Record not found or access denied'",
        "Passed: Deletion query requires user_id match; unauthorized deletion blocked", "PASS", "Critical", "P1", "None", "Deployable", "User Isolation")

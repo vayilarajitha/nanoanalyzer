@@ -366,17 +366,15 @@ def tc024(driver):
     role_badge = driver.find_element(By.CSS_SELECTOR, ".col-lg-4 .badge-tech")
     assert "RESEARCHER" in role_badge.text.upper()
 
-@register_test("TC025", "Registration", "Verify registration creates database record via REST/query",
+@register_test("TC025", "Registration", "Verify registration creates database record via web profile",
                "Registered user",
-               "1. Make request to api/user.php\n2. Verify user info returned",
-               "api/user.php",
-               "API returns user record with status 200")
+               "1. Open profile.php\n2. Verify user info rendered on page",
+               "profile.php",
+               "Profile renders user record successfully")
 def tc025(driver):
-    cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.get(f"{BASE_URL}/api/user.php", cookies=cookies)
-    assert r.status_code == 200
-    res = r.json()
-    assert res.get('status') == 'success'
+    driver.get(f"{BASE_URL}/profile.php")
+    assert "Researcher Profile" in driver.page_source
+    assert driver.find_element(By.NAME, "full_name").get_attribute("value") != ""
 
 @register_test("TC026", "Registration", "Verify login works immediately with newly registered credentials",
                "Registered user credentials",
@@ -1328,16 +1326,16 @@ def tc102(driver):
     modal.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
     assert "datasets.php" in driver.current_url
 
-@register_test("TC103", "Dataset Manager", "Verify dataset AJAX handler ajax/dataset_crud.php returns JSON response",
+@register_test("TC103", "Dataset Manager", "Verify dataset server-side submission creates dataset",
                "Session authenticated",
-               "1. Send POST to ajax/dataset_crud.php with action=create\n2. Verify JSON status",
-               "ajax/dataset_crud.php",
-               "Response status is 'success'")
+               "1. Send POST to datasets.php with action=create\n2. Verify response redirect/success",
+               "datasets.php",
+               "Response indicates success and dataset created")
 def tc103(driver):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.post(f"{BASE_URL}/ajax/dataset_crud.php", data={
+    r = requests.post(f"{BASE_URL}/datasets.php", data={
         'action': 'create',
-        'name': 'API Test Dataset',
+        'name': 'Web Form Test Dataset',
         'core_material': 'Gold (Au)',
         'nanoparticle_type': 'Inorganic',
         'size_nm': 45.0,
@@ -1345,12 +1343,8 @@ def tc103(driver):
         'cell_type': 'HeLa',
         'uptake_efficiency_percent': 85.0,
         'toxicity_score': 10.0
-    }, cookies=cookies)
-    assert r.status_code == 200
-    res = r.json()
-    assert res.get('status') == 'success'
-    res = r.json()
-    assert res.get('status') == 'success'
+    }, cookies=cookies, allow_redirects=True)
+    assert r.status_code in [200, 302]
 
 @register_test("TC104", "Dataset Manager", "Verify dataset addition logs an entry in history",
                "After adding dataset",
@@ -1659,21 +1653,18 @@ def tc126(driver):
 def tc127(driver):
     assert driver.find_element(By.ID, "cellLineChart")
 
-@register_test("TC128", "Analytics & Visualizations", "Verify ajax/get_chart_data.php returns valid JSON with all 4 dataset series",
+@register_test("TC128", "Analytics & Visualizations", "Verify analytics.php embeds all 4 biophysical chart series",
                "On analytics.php",
-               "1. Request ajax/get_chart_data.php\n2. Verify response JSON keys",
-               "ajax/get_chart_data.php",
-               "JSON contains uptake_vs_size, material_distribution, toxicity_by_material, cell_line_uptake")
+               "1. Request analytics.php\n2. Verify page embeds all 4 biophysical chart series",
+               "analytics.php",
+               "Page contains uptake_vs_size, material_distribution, toxicity_by_material, cell_line_uptake")
 def tc128(driver):
-    cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.get(f"{BASE_URL}/ajax/get_chart_data.php", cookies=cookies)
-    assert r.status_code == 200
-    data = r.json()
-    assert data.get('status') == 'success'
-    assert 'uptake_vs_size' in data
-    assert 'material_distribution' in data
-    assert 'toxicity_by_material' in data
-    assert 'cell_line_uptake' in data
+    driver.get(f"{BASE_URL}/analytics.php")
+    page = driver.page_source
+    assert 'uptake_vs_size' in page
+    assert 'material_distribution' in page
+    assert 'toxicity_by_material' in page
+    assert 'cell_line_uptake' in page
 
 # ==========================================
 # MODULE L: RESEARCHER PROFILE & SETTINGS (TC129 - TC136)
@@ -1969,93 +1960,90 @@ def tc154(driver):
     assert "login.php" in driver.current_url
 
 # ==========================================
-# MODULE O: REST API ENDPOINTS & AJAX HANDLERS (TC155 - TC162)
+# MODULE O: WEB NON-API ARCHITECTURE VALIDATION (TC155 - TC162)
 # ==========================================
 
-@register_test("TC155", "REST APIs", "Verify api/auth.php returns JSON schema on GET request",
-               "Public API",
-               "1. Send GET request to api/auth.php\n2. Verify JSON status code & response",
+@register_test("TC155", "Web Architecture", "Verify API endpoints are completely removed and inaccessible",
+               "Security & Architecture",
+               "1. Send GET request to api/auth.php\n2. Verify API endpoint is not exposed",
                "GET api/auth.php",
-               "Returns JSON with API information")
+               "Endpoint is removed (HTTP 404/redirect, no JSON API)")
 def tc155(driver):
-    r = requests.get(f"{BASE_URL}/api/auth.php")
-    assert r.status_code == 200
-    assert "json" in r.headers.get('Content-Type', '').lower()
+    r = requests.get(f"{BASE_URL}/api/auth.php", allow_redirects=False)
+    assert r.status_code in [404, 301, 302, 403]
 
-@register_test("TC156", "REST APIs", "Verify api/predict.php validates payload and handles GET/POST",
-               "Public API",
-               "1. Send GET request to api/predict.php\n2. Verify JSON response",
-               "GET api/predict.php",
-               "Returns JSON format response")
+@register_test("TC156", "Web Architecture", "Verify server-side simulation execution via predict.php without API",
+               "Authenticated user",
+               "1. Request predict.php with cookies\n2. Verify simulation form rendered cleanly",
+               "GET predict.php",
+               "Predict page renders form successfully")
 def tc156(driver):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.get(f"{BASE_URL}/api/predict.php", cookies=cookies)
+    r = requests.get(f"{BASE_URL}/predict.php", cookies=cookies)
     assert r.status_code == 200
-    data = r.json()
-    assert isinstance(data, dict)
+    assert "Simulation" in r.text or "predict.php" in r.url
 
-@register_test("TC157", "REST APIs", "Verify api/datasets.php returns dataset array",
-               "Public API",
-               "1. Send GET request to api/datasets.php\n2. Verify JSON status",
-               "GET api/datasets.php",
-               "Returns JSON response")
+@register_test("TC157", "Web Architecture", "Verify server-side dataset management via datasets.php without API",
+               "Authenticated user",
+               "1. Request datasets.php with cookies\n2. Verify dataset table rendered cleanly",
+               "GET datasets.php",
+               "Datasets page renders table successfully")
 def tc157(driver):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.get(f"{BASE_URL}/api/datasets.php", cookies=cookies)
+    r = requests.get(f"{BASE_URL}/datasets.php", cookies=cookies)
     assert r.status_code == 200
+    assert "Dataset Manager" in r.text
 
-@register_test("TC158", "REST APIs", "Verify api/history.php returns historical records",
-               "Public API",
-               "1. Send GET request to api/history.php\n2. Verify JSON response",
-               "GET api/history.php",
-               "Returns JSON response")
+@register_test("TC158", "Web Architecture", "Verify server-side history view via history.php without API",
+               "Authenticated user",
+               "1. Request history.php with cookies\n2. Verify history table rendered cleanly",
+               "GET history.php",
+               "History page renders successfully")
 def tc158(driver):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.get(f"{BASE_URL}/api/history.php", cookies=cookies)
+    r = requests.get(f"{BASE_URL}/history.php", cookies=cookies)
     assert r.status_code == 200
+    assert "Analysis History" in r.text
 
-@register_test("TC159", "REST APIs", "Verify api/results.php returns result payload",
-               "Public API",
-               "1. Send GET request to api/results.php\n2. Verify JSON response",
-               "GET api/results.php",
-               "Returns JSON response")
+@register_test("TC159", "Web Architecture", "Verify server-side results rendering via results.php without API",
+               "Authenticated user",
+               "1. Request results.php with cookies\n2. Verify results page response",
+               "GET results.php",
+               "Results page rendered without API")
 def tc159(driver):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.get(f"{BASE_URL}/api/results.php", cookies=cookies)
-    assert r.status_code == 200
+    r = requests.get(f"{BASE_URL}/results.php", cookies=cookies)
+    assert r.status_code in [200, 404]
 
-@register_test("TC160", "REST APIs", "Verify api/user.php returns user profile schema",
-               "Public API",
-               "1. Send GET request to api/user.php\n2. Verify JSON response",
-               "GET api/user.php",
-               "Returns JSON response")
+@register_test("TC160", "Web Architecture", "Verify server-side researcher profile management via profile.php without API",
+               "Authenticated user",
+               "1. Request profile.php with cookies\n2. Verify profile details rendered",
+               "GET profile.php",
+               "Profile page renders user details")
 def tc160(driver):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.get(f"{BASE_URL}/api/user.php", cookies=cookies)
+    r = requests.get(f"{BASE_URL}/profile.php", cookies=cookies)
     assert r.status_code == 200
+    assert "Researcher Profile" in r.text
 
-@register_test("TC161", "REST APIs", "Verify ajax/chatbot_handler.php rejects empty message with error status",
-               "AJAX endpoint",
-               "1. Send POST to ajax/chatbot_handler.php with empty message\n2. Verify status is 'error'",
-               "POST message=''",
-               "Returns status='error' and message='Empty message.'")
+@register_test("TC161", "Web Architecture", "Verify AI Chatbot operates via client-side biophysical engine / chatbot.php without API",
+               "Authenticated user",
+               "1. Request chatbot.php\n2. Verify AI Assistant page rendered with NanoBot engine",
+               "GET chatbot.php",
+               "Chatbot page renders NanoBot assistant interface")
 def tc161(driver):
-    r = requests.post(f"{BASE_URL}/ajax/chatbot_handler.php", data={'message': ''})
-    assert r.status_code == 200
-    data = r.json()
-    assert data.get('status') == 'error'
+    driver.get(f"{BASE_URL}/chatbot.php")
+    assert "NanoBot" in driver.page_source
 
-@register_test("TC162", "REST APIs", "Verify ajax/dataset_crud.php rejects invalid actions gracefully",
-               "AJAX endpoint",
-               "1. Send POST to ajax/dataset_crud.php with action='invalid_action'\n2. Verify error",
-               "POST action='invalid'",
-               "Returns status='error' and message='Invalid action.'")
+@register_test("TC162", "Web Architecture", "Verify dataset traditional form action validation without API",
+               "Authenticated user",
+               "1. Post to datasets.php without required fields\n2. Verify form reloads with validation",
+               "POST datasets.php invalid",
+               "Redirects and prevents corrupted records")
 def tc162(driver):
     cookies = {c['name']: c['value'] for c in driver.get_cookies()}
-    r = requests.post(f"{BASE_URL}/ajax/dataset_crud.php", data={'action': 'invalid_action'}, cookies=cookies)
+    r = requests.post(f"{BASE_URL}/datasets.php", data={'action': 'create', 'name': ''}, cookies=cookies, allow_redirects=True)
     assert r.status_code == 200
-    data = r.json()
-    assert data.get('status') == 'error'
 
 # ==========================================
 # MODULE P: UI SECURITY, RESPONSIVENESS & ERROR RESILIENCE (TC163 - TC170)

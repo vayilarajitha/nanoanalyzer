@@ -1,6 +1,6 @@
 /**
  * NanoAnalyzer Live Chart.js Data Visualizations
- * High-Contrast Accessible Chart Formatting driven by ajax/get_chart_data.php
+ * High-Contrast Accessible Chart Formatting driven by server-side database aggregation
  */
 
 let uptakeSizeChartInstance = null;
@@ -9,21 +9,15 @@ let toxicityChartInstance = null;
 let cellLineChartInstance = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-  fetchChartData();
+  loadAndRenderCharts();
 });
 
-function fetchChartData() {
-  fetch('ajax/get_chart_data.php')
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'success') {
-        renderUptakeSizeChart(data.uptake_vs_size);
-        renderMaterialDistChart(data.material_distribution);
-        renderToxicityChart(data.toxicity_by_material);
-        renderCellLineChart(data.cell_line_uptake);
-      }
-    })
-    .catch(err => console.error('Chart Data Loading Error:', err));
+function loadAndRenderCharts() {
+  const data = window.nanoChartData || {};
+  renderUptakeSizeChart(data.uptake_vs_size || []);
+  renderMaterialDistChart(data.material_distribution || []);
+  renderToxicityChart(data.toxicity_by_material || []);
+  renderCellLineChart(data.cell_line_uptake || []);
 }
 
 function handleEmptyChart(ctx, message) {
