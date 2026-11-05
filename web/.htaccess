@@ -1,0 +1,5 @@
+# NanoAnalyzer Web Application
+# Apache Configuration
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
